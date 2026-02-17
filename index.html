@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Action Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617; /* Slate 950 */
+            color: #f8fafc;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .status-badge {
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-todo { background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
+        .status-progress { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.3); }
+        .status-blocked { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); }
+        .status-done { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); }
+
+        input, select {
+            background: transparent;
+            border: none;
+            color: inherit;
+            width: 100%;
+            outline: none;
+        }
+
+        tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
+                    Master Action Dashboard
+                </h1>
+                <p class="text-slate-400 text-sm mt-1">Sleek workflow management for cross-functional projects.</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="addNewRow()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 transition px-4 py-2 rounded-xl text-sm font-semibold shadow-lg shadow-blue-900/20">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Add Action
+                </button>
+                <button onclick="resetData()" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 transition px-4 py-2 rounded-xl text-sm font-semibold border border-slate-700">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset
+                </button>
+            </div>
+        </header>
+
+        <!-- Tabs -->
+        <div class="flex gap-1 mb-6 p-1 bg-slate-900/50 rounded-2xl w-fit border border-slate-800">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn px-6 py-2 rounded-xl text-sm font-medium transition bg-blue-600 text-white shadow-md">Dashboard</button>
+            <button onclick="switchTab('active')" id="tab-active" class="tab-btn px-6 py-2 rounded-xl text-sm font-medium transition text-slate-400 hover:text-white">Active Sprint</button>
+            <button onclick="switchTab('backlog')" id="tab-backlog" class="tab-btn px-6 py-2 rounded-xl text-sm font-medium transition text-slate-400 hover:text-white">Backlog</button>
+        </div>
+
+        <!-- Dashboard View -->
+        <div id="view-dashboard" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in duration-500">
+            <div class="glass-panel p-6 rounded-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-slate-400 text-sm">Due Today</span>
+                    <i data-lucide="calendar" class="w-5 h-5 text-blue-400"></i>
+                </div>
+                <div id="stat-due" class="text-4xl font-bold">0</div>
+            </div>
+            <div class="glass-panel p-6 rounded-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-slate-400 text-sm">Critical (P1)</span>
+                    <i data-lucide="zap" class="w-5 h-5 text-amber-400"></i>
+                </div>
+                <div id="stat-p1" class="text-4xl font-bold">0</div>
+            </div>
+            <div class="glass-panel p-6 rounded-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-slate-400 text-sm">Blocked</span>
+                    <i data-lucide="octagon-alert" class="w-5 h-5 text-red-400"></i>
+                </div>
+                <div id="stat-blocked" class="text-4xl font-bold">0</div>
+            </div>
+            <div class="glass-panel p-6 rounded-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-slate-400 text-sm">Completed Week</span>
+                    <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400"></i>
+                </div>
+                <div id="stat-done" class="text-4xl font-bold text-emerald-400">0</div>
+            </div>
+        </div>
+
+        <!-- Table View -->
+        <div id="view-active" class="hidden glass-panel rounded-2xl overflow-hidden mt-6 animate-in fade-in duration-500">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-900/80 text-slate-400 text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="px-6 py-4 font-semibold">Status</th>
+                            <th class="px-6 py-4 font-semibold">Action Item</th>
+                            <th class="px-6 py-4 font-semibold">Category</th>
+                            <th class="px-6 py-4 font-semibold">Priority</th>
+                            <th class="px-6 py-4 font-semibold">Due Date</th>
+                            <th class="px-6 py-4 font-semibold">Energy</th>
+                            <th class="px-6 py-4 font-semibold text-center">Days</th>
+                            <th class="px-6 py-4 font-semibold text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="task-body" class="divide-y divide-slate-800">
+                        <!-- Rows injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Backlog View (Simplified) -->
+        <div id="view-backlog" class="hidden animate-in fade-in duration-500">
+            <div class="glass-panel p-8 rounded-2xl text-center">
+                <i data-lucide="archive" class="w-12 h-12 text-slate-600 mx-auto mb-4"></i>
+                <h2 class="text-xl font-semibold mb-2">Backlog & Future Ideas</h2>
+                <p class="text-slate-400 max-w-md mx-auto">This is your dumping ground for future VFX concepts or SaaS features. Switch back to 'Active' to manage current tasks.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Message -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 px-6 py-3 rounded-2xl shadow-2xl opacity-0 transition-opacity pointer-events-none flex items-center gap-3">
+        <i data-lucide="info" class="w-4 h-4 text-blue-400"></i>
+        <span id="toast-msg" class="text-sm font-medium">Auto-saved</span>
+    </div>
+
+    <script>
+        // Initial Sample Data
+        const DEFAULT_TASKS = [
+            { id: 1, status: 'To Do', action: 'Draft pitch for Wunderloom', category: 'SaaS/Wunderloom', priority: 'P1 (Critical)', date: '2023-10-27', energy: 'High', created: '2023-10-20' },
+            { id: 2, status: 'In Progress', action: 'Review VFX render farm queue', category: 'Rooxter Films', priority: 'P2 (High)', date: '2023-10-25', energy: 'Medium', created: '2023-10-15' },
+            { id: 3, status: 'Blocked', action: 'Family photo shoot details', category: 'Family', priority: 'P3 (Normal)', date: '2023-11-05', energy: 'Low', created: '2023-10-18' },
+            { id: 4, status: 'Done', action: 'Outline Podcast Episode 10', category: 'Podcast', priority: 'P2 (High)', date: '2023-10-20', energy: 'Medium', created: '2023-10-10' }
+        ];
+
+        let tasks = JSON.parse(localStorage.getItem('action_tasks')) || [...DEFAULT_TASKS];
+
+        function init() {
+            lucide.createIcons();
+            renderTasks();
+            updateStats();
+        }
+
+        function switchTab(tab) {
+            // Update Buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
+                btn.classList.add('text-slate-400', 'hover:text-white');
+            });
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            activeBtn.classList.add('bg-blue-600', 'text-white', 'shadow-md');
+            activeBtn.classList.remove('text-slate-400', 'hover:text-white');
+
+            // Update Views
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-active').classList.add('hidden');
+            document.getElementById('view-backlog').classList.add('hidden');
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+        }
+
+        function calculateDaysOpen(createdDate) {
+            const created = new Date(createdDate);
+            const now = new Date();
+            const diffTime = Math.abs(now - created);
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        function getStatusClass(status) {
+            switch(status) {
+                case 'To Do': return 'status-todo';
+                case 'In Progress': return 'status-progress';
+                case 'Blocked': return 'status-blocked';
+                case 'Done': return 'status-done';
+                default: return 'status-todo';
+            }
+        }
+
+        function renderTasks() {
+            const body = document.getElementById('task-body');
+            body.innerHTML = '';
+
+            tasks.forEach((task, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 min-w-[140px]">
+                        <select onchange="updateTask(${index}, 'status', this.value)" class="status-badge ${getStatusClass(task.status)}">
+                            <option value="To Do" ${task.status === 'To Do' ? 'selected' : ''}>To Do</option>
+                            <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="Blocked" ${task.status === 'Blocked' ? 'selected' : ''}>Blocked</option>
+                            <option value="Done" ${task.status === 'Done' ? 'selected' : ''}>Done</option>
+                        </select>
+                    </td>
+                    <td class="px-6 py-4 min-w-[250px]">
+                        <input type="text" value="${task.action}" onblur="updateTask(${index}, 'action', this.value)" class="focus:text-blue-400 transition">
+                    </td>
+                    <td class="px-6 py-4">
+                        <select onchange="updateTask(${index}, 'category', this.value)" class="text-sm opacity-80 bg-slate-800 rounded px-2 py-1">
+                            <option value="Rooxter Films" ${task.category === 'Rooxter Films' ? 'selected' : ''}>Rooxter Films</option>
+                            <option value="SaaS/Wunderloom" ${task.category === 'SaaS/Wunderloom' ? 'selected' : ''}>SaaS/Wunderloom</option>
+                            <option value="Family" ${task.category === 'Family' ? 'selected' : ''}>Family</option>
+                            <option value="Podcast" ${task.category === 'Podcast' ? 'selected' : ''}>Podcast</option>
+                        </select>
+                    </td>
+                    <td class="px-6 py-4">
+                        <select onchange="updateTask(${index}, 'priority', this.value)" class="text-xs font-bold ${task.priority.includes('P1') ? 'text-amber-400' : 'text-slate-400'}">
+                            <option value="P1 (Critical)" ${task.priority === 'P1 (Critical)' ? 'selected' : ''}>P1 (Critical)</option>
+                            <option value="P2 (High)" ${task.priority === 'P2 (High)' ? 'selected' : ''}>P2 (High)</option>
+                            <option value="P3 (Normal)" ${task.priority === 'P3 (Normal)' ? 'selected' : ''}>P3 (Normal)</option>
+                        </select>
+                    </td>
+                    <td class="px-6 py-4">
+                        <input type="date" value="${task.date}" onchange="updateTask(${index}, 'date', this.value)" class="text-sm opacity-60">
+                    </td>
+                    <td class="px-6 py-4">
+                        <select onchange="updateTask(${index}, 'energy', this.value)" class="text-xs uppercase tracking-tighter">
+                            <option value="Low" ${task.energy === 'Low' ? 'selected' : ''}>Low</option>
+                            <option value="Medium" ${task.energy === 'Medium' ? 'selected' : ''}>Medium</option>
+                            <option value="High" ${task.energy === 'High' ? 'selected' : ''}>High</option>
+                        </select>
+                    </td>
+                    <td class="px-6 py-4 text-center font-mono text-xs opacity-50">
+                        ${task.status === 'Done' ? '-' : calculateDaysOpen(task.created)}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="deleteTask(${index})" class="text-slate-600 hover:text-red-400 transition">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function updateTask(index, field, value) {
+            tasks[index][field] = value;
+            save();
+            if (field === 'status') renderTasks(); // Re-render to update classes
+            updateStats();
+            showToast("Updated " + field);
+        }
+
+        function addNewRow() {
+            const today = new Date().toISOString().split('T')[0];
+            const newTask = {
+                id: Date.now(),
+                status: 'To Do',
+                action: 'New action item...',
+                category: 'Rooxter Films',
+                priority: 'P2 (High)',
+                date: today,
+                energy: 'Medium',
+                created: today
+            };
+            tasks.unshift(newTask);
+            save();
+            renderTasks();
+            updateStats();
+            switchTab('active');
+            showToast("Task added");
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            save();
+            renderTasks();
+            updateStats();
+            showToast("Task deleted");
+        }
+
+        function updateStats() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            
+            document.getElementById('stat-due').innerText = tasks.filter(t => t.date === todayStr && t.status !== 'Done').length;
+            document.getElementById('stat-p1').innerText = tasks.filter(t => t.priority.includes('P1') && t.status !== 'Done').length;
+            document.getElementById('stat-blocked').innerText = tasks.filter(t => t.status === 'Blocked').length;
+            document.getElementById('stat-done').innerText = tasks.filter(t => t.status === 'Done').length;
+        }
+
+        function save() {
+            localStorage.setItem('action_tasks', JSON.stringify(tasks));
+        }
+
+        function resetData() {
+            if (confirm("This will clear your current changes and reset to defaults. Continue?")) {
+                tasks = [...DEFAULT_TASKS];
+                save();
+                renderTasks();
+                updateStats();
+                showToast("Reset complete");
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 2000);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
