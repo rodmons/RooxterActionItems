@@ -14,44 +14,68 @@ const calculateStats = (tasks) => {
 
 export function useTasks() {
     const [tasks, setTasks] = useState([]);
+    const [teamMembers, setTeamMembers] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Initial fetch
     useEffect(() => {
-        fetchTasks();
+        fetchData();
     }, []);
 
-    const fetchTasks = async () => {
+    const fetchData = async () => {
         try {
             setLoading(true);
-            const { data, error } = await supabase
-                .from('tasks')
-                .select('*')
-                .order('id', { ascending: false }); // Newest first
+            const [tasksResult, teamsResult] = await Promise.all([
+                supabase.from('tasks').select('*').order('id', { ascending: false }),
+                supabase.from('team_members').select('*').order('name', { ascending: true })
+            ]);
 
-            if (error) throw error;
-            setTasks(data || []);
+            if (tasksResult.error) throw tasksResult.error;
+            if (teamsResult.error) throw teamsResult.error;
+
+            setTasks(tasksResult.data || []);
+            setTeamMembers(teamsResult.data || []);
         } catch (error) {
-            console.error('Error fetching tasks:', error);
+            console.error('Error fetching data:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const addTask = async () => {
+    const addTeamMember = async (name) => {
+        const newMember = { name };
+        // Optimistic
+        setTeamMembers([...teamMembers, { id: Date.now(), ...newMember }]);
+
+        const { data, error } = await supabase
+            .from('team_members')
+            .insert([newMember])
+            .select();
+
+        if (error) {
+            console.error('Error adding team member:', error);
+            fetchData(); // Revert
+        } else if (data) {
+            // Update with real ID
+            setTeamMembers(prev => prev.map(m => m.name === name ? data[0] : m));
+        }
+        return data;
+    };
+
+    const addTask = async (assignee) => {
         const today = new Date().toISOString().split('T')[0];
         const newTask = {
-            id: Date.now(), // Using timestamp as ID for simplicity, fits in bigint
+            id: Date.now(),
             status: 'To Do',
             action: 'New action item...',
             category: 'Rooxter Films',
             priority: 'P2 (High)',
             date: today,
             energy: 'Medium',
-            created: today
+            created: today,
+            assignee: assignee
         };
 
-        // Optimistic update
         setTasks([newTask, ...tasks]);
 
         const { error } = await supabase
@@ -60,13 +84,11 @@ export function useTasks() {
 
         if (error) {
             console.error('Error adding task:', error);
-            // Revert on error (optional, simple fetch for now)
-            fetchTasks();
+            fetchData();
         }
     };
 
     const updateTask = async (id, field, value) => {
-        // Optimistic update
         setTasks(tasks.map(t => t.id === id ? { ...t, [field]: value } : t));
 
         const { error } = await supabase
@@ -76,12 +98,11 @@ export function useTasks() {
 
         if (error) {
             console.error('Error updating task:', error);
-            fetchTasks(); // Revert/Sync
+            fetchData();
         }
     };
 
     const deleteTask = async (id) => {
-        // Optimistic update
         setTasks(tasks.filter(t => t.id !== id));
 
         const { error } = await supabase
@@ -91,19 +112,17 @@ export function useTasks() {
 
         if (error) {
             console.error('Error deleting task:', error);
-            fetchTasks();
+            fetchData();
         }
     };
 
     const resetData = async () => {
-        // Not implementing full delete-all for now to be safe, 
-        // or could just re-fetch to sync with backend.
         if (confirm('Reload data from server?')) {
-            fetchTasks();
+            fetchData();
         }
     };
 
     const stats = useMemo(() => calculateStats(tasks), [tasks]);
 
-    return { tasks, stats, addTask, updateTask, deleteTask, resetData, loading };
+    return { tasks, teamMembers, stats, addTask, addTeamMember, updateTask, deleteTask, resetData, loading };
 }
