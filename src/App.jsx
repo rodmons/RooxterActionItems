@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   Plus,
   RotateCcw,
@@ -10,85 +10,25 @@ import {
   Calendar,
   OctagonAlert,
   CheckCircle2,
-  MoreVertical,
   Activity,
   BarChart3
 } from 'lucide-react';
-
-// --- Constants (Previously in constants/index.js) ---
-const STATUS_OPTIONS = ['To Do', 'In Progress', 'Blocked', 'Done'];
-const CATEGORY_OPTIONS = ['Rooxter Films', 'SaaS/Wunderloom', 'Family', 'Podcast'];
-const PRIORITY_OPTIONS = ['P1 (Critical)', 'P2 (High)', 'P3 (Normal)'];
-const ENERGY_OPTIONS = ['Low', 'Medium', 'High'];
-
-const DEFAULT_TASKS = [
-  { id: 1, status: 'To Do', action: 'Draft pitch for Wunderloom', category: 'SaaS/Wunderloom', priority: 'P1 (Critical)', date: '2023-10-27', energy: 'High', created: '2023-10-20' },
-  { id: 2, status: 'In Progress', action: 'Review VFX render farm queue', category: 'Rooxter Films', priority: 'P2 (High)', date: '2023-10-25', energy: 'Medium', created: '2023-10-15' },
-  { id: 3, status: 'Blocked', action: 'Family photo shoot details', category: 'Family', priority: 'P3 (Normal)', date: '2023-11-05', energy: 'Low', created: '2023-10-18' },
-  { id: 4, status: 'Done', action: 'Outline Podcast Episode 10', category: 'Podcast', priority: 'P2 (High)', date: '2023-10-20', energy: 'Medium', created: '2023-10-10' }
-];
-
-// --- Custom Hook Logic (Previously in hooks/useTasks.js) ---
-function useTasks() {
-  const [tasks, setTasks] = useState(() => {
-    try {
-      const saved = localStorage.getItem('rooxter_tasks_v2');
-      return saved ? JSON.parse(saved) : DEFAULT_TASKS;
-    } catch (e) {
-      return DEFAULT_TASKS;
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem('rooxter_tasks_v2', JSON.stringify(tasks));
-  }, [tasks]);
-
-  const stats = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
-    return {
-      dueToday: tasks.filter(t => t.date === today && t.status !== 'Done').length,
-      p1: tasks.filter(t => t.priority.includes('P1') && t.status !== 'Done').length,
-      blocked: tasks.filter(t => t.status === 'Blocked').length,
-      completed: tasks.filter(t => t.status === 'Done').length,
-    };
-  }, [tasks]);
-
-  const addTask = () => {
-    const today = new Date().toISOString().split('T')[0];
-    const newTask = {
-      id: Date.now(),
-      status: 'To Do',
-      action: 'New action item...',
-      category: 'Rooxter Films',
-      priority: 'P2 (High)',
-      date: today,
-      energy: 'Medium',
-      created: today
-    };
-    setTasks([newTask, ...tasks]);
-  };
-
-  const updateTask = (id, field, value) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, [field]: value } : t));
-  };
-
-  const deleteTask = (id) => {
-    setTasks(prev => prev.filter(t => t.id !== id));
-  };
-
-  const resetData = () => {
-    if (window.confirm('This will reset your dashboard to defaults. Continue?')) {
-      setTasks(DEFAULT_TASKS);
-    }
-  };
-
-  return { tasks, stats, addTask, updateTask, deleteTask, resetData };
-}
+import { useTasks } from './hooks/useTasks';
+import { STATUS_OPTIONS, CATEGORY_OPTIONS } from './constants';
 
 // --- Main App Component ---
 export default function App() {
-  const { tasks, stats, addTask, updateTask, deleteTask, resetData } = useTasks();
+  const { tasks, stats, addTask, updateTask, deleteTask, resetData, loading } = useTasks();
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-slate-50 flex flex-col items-center justify-center font-sans">
+        <Activity className="w-12 h-12 text-blue-500 animate-spin mb-4" />
+        <div className="animate-pulse text-blue-400 font-bold tracking-[0.3em] text-sm">INITIALIZING SYSTEM...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-slate-50 p-4 md:p-8 font-sans antialiased selection:bg-blue-500/30">
@@ -133,8 +73,8 @@ export default function App() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === tab.id
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                 }`}
             >
               <tab.icon className="w-4 h-4" /> {tab.label}
@@ -175,16 +115,16 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {tasks.map(task => (
+                  {(tasks || []).map(task => (
                     <tr key={task.id} className="hover:bg-blue-600/[0.03] transition-colors group">
                       <td className="px-8 py-6">
                         <select
                           value={task.status}
                           onChange={(e) => updateTask(task.id, 'status', e.target.value)}
                           className={`text-[10px] font-black uppercase px-4 py-1.5 rounded-full border border-opacity-30 bg-opacity-10 outline-none cursor-pointer transition-all ${task.status === 'Done' ? 'bg-emerald-500 text-emerald-400 border-emerald-500' :
-                              task.status === 'Blocked' ? 'bg-red-500 text-red-400 border-red-500' :
-                                task.status === 'In Progress' ? 'bg-blue-500 text-blue-400 border-blue-500' :
-                                  'bg-slate-500 text-slate-400 border-slate-500'
+                            task.status === 'Blocked' ? 'bg-red-500 text-red-400 border-red-500' :
+                              task.status === 'In Progress' ? 'bg-blue-500 text-blue-400 border-blue-500' :
+                                'bg-slate-500 text-slate-400 border-slate-500'
                             }`}
                         >
                           {STATUS_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-slate-900">{opt}</option>)}
@@ -222,7 +162,7 @@ export default function App() {
                   ))}
                 </tbody>
               </table>
-              {tasks.length === 0 && (
+              {tasks?.length === 0 && (
                 <div className="p-20 text-center text-slate-600 font-bold italic tracking-tighter text-2xl">
                   SYSTEM CLEAR. NO ACTIVE ITEMS.
                 </div>
@@ -237,7 +177,7 @@ export default function App() {
             <Archive className="w-16 h-16 text-slate-800 mx-auto mb-6" />
             <h2 className="text-3xl font-black mb-4 tracking-tight">System Archive</h2>
             <p className="text-slate-500 max-w-md mx-auto font-medium">
-              Completed or long-term backlog items are stored here for historical reference and future scheduling.
+              Completed or long-term backlock items are stored here for historical reference and future scheduling.
             </p>
           </div>
         )}
