@@ -1,33 +1,11 @@
+export const STATUS_OPTIONS = ['To Do', 'In Progress', 'Blocked', 'Done'];
+export const CATEGORY_OPTIONS = ['Rooxter Films', 'SaaS/Wunderloom', 'Family', 'Podcast'];
+export const PRIORITY_OPTIONS = ['P1 (Critical)', 'P2 (High)', 'P3 (Normal)'];
+export const ENERGY_OPTIONS = ['Low', 'Medium', 'High'];
 
-import {
-    CheckCircle2,
-    Circle,
-    Clock,
-    AlertOctagon,
-    Film,
-    Cpu,
-    Users,
-    Mic
-} from 'lucide-react';
-
-export const STATUS_OPTIONS = [
-    { value: 'To Do', label: 'To Do', color: 'slate', icon: Circle },
-    { value: 'In Progress', label: 'In Progress', color: 'blue', icon: Clock },
-    { value: 'Blocked', label: 'Blocked', color: 'red', icon: AlertOctagon },
-    { value: 'Done', label: 'Done', color: 'emerald', icon: CheckCircle2 },
+export const DEFAULT_TASKS = [
+    { id: 1, status: 'To Do', action: 'Draft pitch for Wunderloom', category: 'SaaS/Wunderloom', priority: 'P1 (Critical)', date: '2023-10-27', energy: 'High', created: '2023-10-20' },
+    { id: 2, status: 'In Progress', action: 'Review VFX render farm queue', category: 'Rooxter Films', priority: 'P2 (High)', date: '2023-10-25', energy: 'Medium', created: '2023-10-15' },
+    { id: 3, status: 'Blocked', action: 'Family photo shoot details', category: 'Family', priority: 'P3 (Normal)', date: '2023-11-05', energy: 'Low', created: '2023-10-18' },
+    { id: 4, status: 'Done', action: 'Outline Podcast Episode 10', category: 'Podcast', priority: 'P2 (High)', date: '2023-10-20', energy: 'Medium', created: '2023-10-10' }
 ];
-
-export const PRIORITY_OPTIONS = [
-    { value: 'P1 (Critical)', label: 'P1 (Critical)', color: 'amber' },
-    { value: 'P2 (High)', label: 'P2 (High)', color: 'orange' },
-    { value: 'P3 (Normal)', label: 'P3 (Normal)', color: 'blue' },
-];
-
-export const CATEGORY_OPTIONS = [
-    { value: 'Rooxter Films', label: 'Rooxter Films', icon: Film },
-    { value: 'SaaS/Wunderloom', label: 'SaaS/Wunderloom', icon: Cpu },
-    { value: 'Family', label: 'Family', icon: Users },
-    { value: 'Podcast', label: 'Podcast', icon: Mic },
-];
-
-export const ENERGY_LEVELS = ['Low', 'Medium', 'High'];
