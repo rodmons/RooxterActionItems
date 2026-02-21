@@ -1,20 +1,33 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
+import { calculateTargetDeadline, getPriorityFromDueByType, isTaskOverdue } from '../utils/dateUtils';
 
 // Helper to calculate stats from tasks array
 const calculateStats = (tasks) => {
-    const today = new Date().toISOString().split('T')[0];
+    const todayStr = new Date().toISOString().split('T')[0];
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
     return {
-        dueToday: tasks.filter(t => t.date === today && t.status !== 'Done').length,
-        p1: tasks.filter(t => t.priority.includes('P1') && t.status !== 'Done').length,
-        blocked: tasks.filter(t => t.status === 'Blocked').length,
-        completed: tasks.filter(t => t.status === 'Done').length,
+        // Since due_by_type handles "Today", we can count those. Or anything not done and not overdue but due today.
+        p1: tasks.filter(t => t.priority && t.priority.includes('P1') && t.status !== 'Done' && t.status !== 'Deleted' && !t.is_archived).length,
+        p2: tasks.filter(t => t.priority && t.priority.includes('P2') && t.status !== 'Done' && t.status !== 'Deleted' && !t.is_archived).length,
+        p3: tasks.filter(t => t.priority && t.priority.includes('P3') && t.status !== 'Done' && t.status !== 'Deleted' && !t.is_archived).length,
+        // Completed only in last 7 days
+        completed: tasks.filter(t => {
+            if (t.status !== 'Done') return false;
+            // Best effort to find completion time, fallback to submitted_on or created
+            const compDate = t.deletion_date || t.submitted_on || t.created_at || t.date;
+            return new Date(compDate) >= sevenDaysAgo;
+        }).length,
+        overdue: tasks.filter(t => t.status !== 'Done' && t.status !== 'Deleted' && !t.is_archived && isTaskOverdue(t.target_deadline)).length
     };
 };
 
 export function useTasks() {
     const [tasks, setTasks] = useState([]);
     const [teamMembers, setTeamMembers] = useState([]);
+    const [contexts, setContexts] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Initial fetch
@@ -25,16 +38,35 @@ export function useTasks() {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [tasksResult, teamsResult] = await Promise.all([
+            const [tasksResult, teamsResult, contextsResult] = await Promise.all([
                 supabase.from('tasks').select('*').order('id', { ascending: false }),
-                supabase.from('team_members').select('*').order('name', { ascending: true })
+                supabase.from('team_members').select('*').order('name', { ascending: true }),
+                supabase.from('contexts').select('*').order('name', { ascending: true })
             ]);
 
             if (tasksResult.error) throw tasksResult.error;
             if (teamsResult.error) throw teamsResult.error;
+            if (contextsResult.error) throw contextsResult.error;
 
             setTasks(tasksResult.data || []);
             setTeamMembers(teamsResult.data || []);
+            setContexts(contextsResult.data || []);
+
+            // 30-Day Trash Cleanup Logic
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            const tasksToDelete = (tasksResult.data || []).filter(t =>
+                t.status === 'Deleted' &&
+                t.deletion_date &&
+                new Date(t.deletion_date) < thirtyDaysAgo
+            ).map(t => t.id);
+
+            if (tasksToDelete.length > 0) {
+                await supabase.from('tasks').delete().in('id', tasksToDelete);
+                console.log(`Cleaned up ${tasksToDelete.length} permanently deleted tasks.`);
+            }
+
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -44,7 +76,6 @@ export function useTasks() {
 
     const addTeamMember = async (name) => {
         const newMember = { name };
-        // Optimistic
         setTeamMembers([...teamMembers, { id: Date.now(), ...newMember }]);
 
         const { data, error } = await supabase
@@ -54,26 +85,86 @@ export function useTasks() {
 
         if (error) {
             console.error('Error adding team member:', error);
-            fetchData(); // Revert
+            fetchData();
         } else if (data) {
-            // Update with real ID
             setTeamMembers(prev => prev.map(m => m.name === name ? data[0] : m));
         }
         return data;
     };
 
+    const deleteTeamMember = async (member) => {
+        // Remove from UI
+        setTeamMembers(prev => prev.filter(m => m.id !== member.id));
+
+        // Move all their tasks to Archive
+        setTasks(prev => prev.map(t => t.assignee === member.name ? { ...t, is_archived: true } : t));
+
+        // DB Updates
+        const { error: tasksError } = await supabase
+            .from('tasks')
+            .update({ is_archived: true })
+            .eq('assignee', member.name);
+
+        const { error: memError } = await supabase
+            .from('team_members')
+            .delete()
+            .eq('id', member.id);
+
+        if (tasksError || memError) {
+            console.error('Error deleting team member:', tasksError || memError);
+            fetchData();
+        }
+    };
+
+    const updateTeamMember = async (id, newName) => {
+        const member = teamMembers.find(m => m.id === id);
+        if (!member) return;
+        const oldName = member.name;
+
+        // UI Optimistic
+        setTeamMembers(prev => prev.map(m => m.id === id ? { ...m, name: newName } : m));
+        setTasks(prev => prev.map(t => t.assignee === oldName ? { ...t, assignee: newName } : t));
+
+        const { error: mErr } = await supabase.from('team_members').update({ name: newName }).eq('id', id);
+        const { error: tErr } = await supabase.from('tasks').update({ assignee: newName }).eq('assignee', oldName);
+
+        if (mErr || tErr) fetchData();
+    };
+
+    const addContext = async (name) => {
+        const newContext = { name };
+        setContexts([...contexts, { id: Date.now(), ...newContext }]);
+
+        const { data, error } = await supabase
+            .from('contexts')
+            .insert([newContext])
+            .select();
+
+        if (error) {
+            console.error('Error adding context:', error);
+            fetchData();
+        } else if (data) {
+            setContexts(prev => prev.map(c => c.name === name ? data[0] : c));
+        }
+        return data;
+    };
+
     const addTask = async (assignee) => {
-        const today = new Date().toISOString().split('T')[0];
+        const dueByType = 'This Week'; // Default
+        const defaultContext = contexts.length > 0 ? contexts[0].name : '';
+
         const newTask = {
             id: Date.now(),
             status: 'To Do',
             action: 'New action item...',
-            category: 'Rooxter Films',
-            priority: 'P2 (High)',
-            date: today,
+            category: defaultContext,
+            due_by_type: dueByType,
+            priority: getPriorityFromDueByType(dueByType),
+            target_deadline: calculateTargetDeadline(dueByType),
+            submitted_on: new Date().toISOString(),
             energy: 'Medium',
-            created: today,
-            assignee: assignee
+            assignee: assignee,
+            is_archived: false
         };
 
         setTasks([newTask, ...tasks]);
@@ -89,11 +180,20 @@ export function useTasks() {
     };
 
     const updateTask = async (id, field, value) => {
-        setTasks(tasks.map(t => t.id === id ? { ...t, [field]: value } : t));
+        let updates = { [field]: value };
+
+        // If due_by_type changes, we must auto-calculate priority and target_deadline
+        if (field === 'due_by_type') {
+            updates.priority = getPriorityFromDueByType(value);
+            updates.target_deadline = calculateTargetDeadline(value);
+        }
+
+        // Optimistic UI update
+        setTasks(tasks.map(t => t.id === id ? { ...t, ...updates } : t));
 
         const { error } = await supabase
             .from('tasks')
-            .update({ [field]: value })
+            .update(updates)
             .eq('id', id);
 
         if (error) {
@@ -103,15 +203,18 @@ export function useTasks() {
     };
 
     const deleteTask = async (id) => {
-        setTasks(tasks.filter(t => t.id !== id));
+        // Soft delete
+        const updates = { status: 'Deleted', deletion_date: new Date().toISOString() };
+
+        setTasks(tasks.map(t => t.id === id ? { ...t, ...updates } : t));
 
         const { error } = await supabase
             .from('tasks')
-            .delete()
+            .update(updates)
             .eq('id', id);
 
         if (error) {
-            console.error('Error deleting task:', error);
+            console.error('Error soft-deleting task:', error);
             fetchData();
         }
     };
@@ -124,5 +227,19 @@ export function useTasks() {
 
     const stats = useMemo(() => calculateStats(tasks), [tasks]);
 
-    return { tasks, teamMembers, stats, addTask, addTeamMember, updateTask, deleteTask, resetData, loading };
+    return {
+        tasks,
+        teamMembers,
+        contexts,
+        stats,
+        addTask,
+        addTeamMember,
+        deleteTeamMember,
+        updateTeamMember,
+        addContext,
+        updateTask,
+        deleteTask,
+        resetData,
+        loading
+    };
 }
