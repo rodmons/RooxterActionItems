@@ -132,7 +132,9 @@ export function useTasks() {
     };
 
     const addContext = async (name) => {
-        const newContext = { name };
+        const trimmed = name.trim();
+        if (!trimmed) return;
+        const newContext = { name: trimmed };
         setContexts([...contexts, { id: Date.now(), ...newContext }]);
 
         const { data, error } = await supabase
@@ -144,9 +146,18 @@ export function useTasks() {
             console.error('Error adding context:', error);
             fetchData();
         } else if (data) {
-            setContexts(prev => prev.map(c => c.name === name ? data[0] : c));
+            setContexts(prev => prev.map(c => c.name === trimmed ? data[0] : c));
         }
         return data;
+    };
+
+    const deleteContext = async (id) => {
+        setContexts(prev => prev.filter(c => c.id !== id));
+        const { error } = await supabase.from('contexts').delete().eq('id', id);
+        if (error) {
+            console.error('Error deleting context:', error);
+            fetchData();
+        }
     };
 
     const addTask = async (assignee) => {
@@ -240,6 +251,7 @@ export function useTasks() {
         deleteTeamMember,
         updateTeamMember,
         addContext,
+        deleteContext,
         updateTask,
         deleteTask,
         resetData,

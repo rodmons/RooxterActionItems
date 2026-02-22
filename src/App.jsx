@@ -32,6 +32,7 @@ export default function App() {
         deleteTeamMember,
         updateTeamMember,
         addContext,
+        deleteContext,
         updateTask,
         deleteTask,
         resetData,
@@ -88,17 +89,7 @@ export default function App() {
         }
     };
 
-    const handleContextChange = async (taskId, value) => {
-        if (value === 'NEW') {
-            const newCtx = prompt("Enter new Context name:");
-            if (newCtx) {
-                await addContext(newCtx);
-                updateTask(taskId, 'category', newCtx);
-            }
-        } else {
-            updateTask(taskId, 'category', value);
-        }
-    };
+    // Context changes are now handled inside the ContextDropdown component
 
     // Filter tasks for Modals
     const getModalTasks = () => {
@@ -322,28 +313,22 @@ export default function App() {
                                                         />
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <select
+                                                        <ContextDropdown
+                                                            contexts={contexts}
                                                             value={task.category || ''}
-                                                            onChange={(e) => handleContextChange(task.id, e.target.value)}
-                                                            className="bg-transparent text-slate-400 text-xs font-semibold outline-none cursor-pointer hover:text-white transition-colors"
-                                                        >
-                                                            {contexts.map(c => <option key={c.id} value={c.name} className="bg-slate-900">{c.name}</option>)}
-                                                            <option value="NEW" className="bg-slate-800 text-blue-400">+ Create New</option>
-                                                        </select>
+                                                            onSelect={(name) => updateTask(task.id, 'category', name)}
+                                                            onAdd={addContext}
+                                                            onDelete={deleteContext}
+                                                        />
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <div className="flex flex-col">
-                                                            <select
-                                                                value={task.due_by_type || ''}
-                                                                onChange={(e) => updateTask(task.id, 'due_by_type', e.target.value)}
-                                                                className="bg-transparent text-slate-400 text-xs font-bold outline-none cursor-pointer hover:text-white transition-colors"
-                                                            >
-                                                                {DUE_BY_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-slate-900">{opt}</option>)}
-                                                            </select>
-                                                            <span className={`text-[9px] uppercase font-bold mt-1 tracking-widest ${task.priority?.includes('P1') ? 'text-amber-500' : task.priority?.includes('P2') ? 'text-orange-400' : 'text-blue-400'}`}>
-                                                                {task.priority}
-                                                            </span>
-                                                        </div>
+                                                        <select
+                                                            value={task.due_by_type || ''}
+                                                            onChange={(e) => updateTask(task.id, 'due_by_type', e.target.value)}
+                                                            className="bg-slate-800/60 border border-slate-700 text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 outline-none cursor-pointer hover:bg-slate-700 transition-colors appearance-auto"
+                                                        >
+                                                            {DUE_BY_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-slate-900">{opt}</option>)}
+                                                        </select>
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         <button
@@ -500,6 +485,88 @@ export default function App() {
             animation: fade-in 0.5s ease-out forwards;
         }
       `}</style>
+        </div>
+    );
+}
+
+// --- Context Dropdown Component ---
+function ContextDropdown({ contexts, value, onSelect, onAdd, onDelete }) {
+    const [isOpen, setIsOpen] = React.useState(false);
+    const [isCreating, setIsCreating] = React.useState(false);
+    const [newName, setNewName] = React.useState('');
+    const ref = React.useRef(null);
+
+    // Close on outside click
+    React.useEffect(() => {
+        const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) { setIsOpen(false); setIsCreating(false); setNewName(''); } };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    const handleAdd = async () => {
+        if (!newName.trim()) return;
+        await onAdd(newName.trim());
+        onSelect(newName.trim());
+        setNewName('');
+        setIsCreating(false);
+        setIsOpen(false);
+    };
+
+    return (
+        <div className="relative" ref={ref}>
+            <button
+                type="button"
+                onClick={() => { setIsOpen(!isOpen); setIsCreating(false); setNewName(''); }}
+                className="flex items-center gap-1 text-slate-400 text-xs font-semibold hover:text-white transition-colors"
+            >
+                <span>{value || <span className="italic text-slate-600">Select...</span>}</span>
+                <ChevronDown className="w-3 h-3 opacity-50" />
+            </button>
+
+            {isOpen && (
+                <div className="absolute top-full left-0 mt-1 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+                    {contexts.length === 0 && !isCreating && (
+                        <div className="px-4 py-3 text-slate-600 italic text-xs">No contexts yet.</div>
+                    )}
+                    {contexts.map(c => (
+                        <div key={c.id} className="flex items-center justify-between group px-4 py-2.5 hover:bg-slate-800 cursor-pointer"
+                            onClick={() => { onSelect(c.name); setIsOpen(false); }}
+                        >
+                            <span className={`text-xs font-semibold ${value === c.name ? 'text-blue-400' : 'text-slate-300'}`}>{c.name}</span>
+                            <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); onDelete(c.id); }}
+                                className="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-red-400 transition-all ml-2"
+                                title="Delete context"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        </div>
+                    ))}
+                    <div className="h-px bg-slate-800" />
+                    {isCreating ? (
+                        <div className="px-3 py-2 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                            <input
+                                autoFocus
+                                value={newName}
+                                onChange={(e) => setNewName(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') { setIsCreating(false); setNewName(''); } }}
+                                placeholder="Context name..."
+                                className="flex-1 bg-slate-800 border border-slate-600 text-xs text-white rounded-lg px-2 py-1.5 outline-none focus:border-blue-500"
+                            />
+                            <button type="button" onClick={handleAdd} className="text-xs text-blue-400 font-bold hover:text-blue-300">Add</button>
+                        </div>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setIsCreating(true); }}
+                            className="w-full px-4 py-2.5 text-left text-xs font-bold text-blue-400 hover:bg-blue-900/20 transition-colors"
+                        >
+                            + Create New
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
