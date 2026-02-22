@@ -271,8 +271,8 @@ export default function App() {
                             </button>
                         </div>
 
-                        <div className="glass rounded-[2.5rem] overflow-hidden border border-white/5">
-                            <div className="overflow-x-auto no-scrollbar">
+                        <div className="glass rounded-[2.5rem] border border-white/5 min-h-[450px]">
+                            <div className="overflow-visible no-scrollbar">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-900/30 border-b border-white/5 text-slate-500 text-[10px] uppercase tracking-[0.2em]">
@@ -489,7 +489,7 @@ export default function App() {
     );
 }
 
-// --- Context Dropdown Component ---
+// --- Updated Context Dropdown Component ---
 function ContextDropdown({ contexts, value, onSelect, onAdd, onDelete }) {
     const [isOpen, setIsOpen] = React.useState(false);
     const [isCreating, setIsCreating] = React.useState(false);
@@ -498,71 +498,98 @@ function ContextDropdown({ contexts, value, onSelect, onAdd, onDelete }) {
 
     // Close on outside click
     React.useEffect(() => {
-        const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) { setIsOpen(false); setIsCreating(false); setNewName(''); } };
+        const handler = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) {
+                setIsOpen(false);
+                setIsCreating(false);
+                setNewName('');
+            }
+        };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
     const handleAdd = async () => {
-        if (!newName.trim()) return;
-        await onAdd(newName.trim());
-        onSelect(newName.trim());
+        const trimmed = newName.trim();
+        if (!trimmed) return;
+        await onAdd(trimmed);
+        onSelect(trimmed);
         setNewName('');
         setIsCreating(false);
         setIsOpen(false);
     };
 
     return (
-        <div className="relative" ref={ref}>
+        <div className="relative inline-block" ref={ref}>
             <button
                 type="button"
                 onClick={() => { setIsOpen(!isOpen); setIsCreating(false); setNewName(''); }}
-                className="flex items-center gap-1 text-slate-400 text-xs font-semibold hover:text-white transition-colors"
+                className="flex items-center gap-2 text-slate-400 text-xs font-bold hover:text-white transition-colors group"
             >
-                <span>{value || <span className="italic text-slate-600">Select...</span>}</span>
-                <ChevronDown className="w-3 h-3 opacity-50" />
+                <span className={value ? "text-blue-400" : "italic text-slate-600"}>
+                    {value || "Select Context..."}
+                </span>
+                <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : 'opacity-50'}`} />
             </button>
 
             {isOpen && (
-                <div className="absolute top-full left-0 mt-1 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden">
-                    {contexts.length === 0 && !isCreating && (
-                        <div className="px-4 py-3 text-slate-600 italic text-xs">No contexts yet.</div>
-                    )}
-                    {contexts.map(c => (
-                        <div key={c.id} className="flex items-center justify-between group px-4 py-2.5 hover:bg-slate-800 cursor-pointer"
-                            onClick={() => { onSelect(c.name); setIsOpen(false); }}
-                        >
-                            <span className={`text-xs font-semibold ${value === c.name ? 'text-blue-400' : 'text-slate-300'}`}>{c.name}</span>
-                            <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); onDelete(c.id); }}
-                                className="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-red-400 transition-all ml-2"
-                                title="Delete context"
+                <div className="absolute top-full left-0 mt-2 w-64 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-[100] overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2">
+
+                    {/* List Existing Contexts */}
+                    <div className="max-h-48 overflow-y-auto no-scrollbar">
+                        {contexts.map(c => (
+                            <div
+                                key={c.id}
+                                className="flex items-center justify-between group/item px-4 py-3 hover:bg-blue-600 cursor-pointer transition-colors"
+                                onClick={() => { onSelect(c.name); setIsOpen(false); }}
                             >
-                                <X className="w-3 h-3" />
-                            </button>
-                        </div>
-                    ))}
-                    <div className="h-px bg-slate-800" />
+                                <span className={`text-sm font-semibold ${value === c.name ? 'text-white' : 'text-slate-300'}`}>
+                                    {c.name}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); onDelete(c.id); }}
+                                    className="opacity-0 group-hover/item:opacity-100 text-slate-400 hover:text-white transition-all ml-2"
+                                    title="Delete context"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Separator only if there are existing contexts */}
+                    {contexts.length > 0 && <div className="h-px bg-slate-800 my-1" />}
+
+                    {/* Create New Logic */}
                     {isCreating ? (
-                        <div className="px-3 py-2 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                        <div className="px-3 py-3 flex items-center gap-2 bg-slate-800/50" onClick={(e) => e.stopPropagation()}>
                             <input
                                 autoFocus
                                 value={newName}
                                 onChange={(e) => setNewName(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') { setIsCreating(false); setNewName(''); } }}
-                                placeholder="Context name..."
-                                className="flex-1 bg-slate-800 border border-slate-600 text-xs text-white rounded-lg px-2 py-1.5 outline-none focus:border-blue-500"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleAdd();
+                                    if (e.key === 'Escape') { setIsCreating(false); setNewName(''); }
+                                }}
+                                placeholder="New Context..."
+                                className="flex-1 bg-slate-900 border border-slate-700 text-sm text-white rounded-lg px-2 py-1.5 outline-none focus:border-blue-500"
                             />
-                            <button type="button" onClick={handleAdd} className="text-xs text-blue-400 font-bold hover:text-blue-300">Add</button>
+                            <button
+                                type="button"
+                                onClick={handleAdd}
+                                className="text-xs bg-blue-600 text-white font-black uppercase hover:bg-blue-500 px-3 py-1.5 rounded-lg transition-colors shadow-lg"
+                            >
+                                Add
+                            </button>
                         </div>
                     ) : (
                         <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); setIsCreating(true); }}
-                            className="w-full px-4 py-2.5 text-left text-xs font-bold text-blue-400 hover:bg-blue-900/20 transition-colors"
+                            className="w-full px-4 py-3 text-left text-sm font-bold text-blue-400 hover:bg-blue-900/30 transition-colors flex items-center gap-2"
                         >
-                            + Create New
+                            <Plus className="w-4 h-4" /> CREATE NEW
                         </button>
                     )}
                 </div>
