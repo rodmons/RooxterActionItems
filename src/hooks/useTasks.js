@@ -150,6 +150,7 @@ export function useTasks() {
     };
 
     const addTask = async (assignee) => {
+        const todayStr = new Date().toISOString().split('T')[0];
         const dueByType = 'This Week'; // Default
         const defaultContext = contexts.length > 0 ? contexts[0].name : '';
 
@@ -162,6 +163,8 @@ export function useTasks() {
             priority: getPriorityFromDueByType(dueByType),
             target_deadline: calculateTargetDeadline(dueByType),
             submitted_on: new Date().toISOString(),
+            date: todayStr,
+            created: todayStr,
             energy: 'Medium',
             assignee: assignee,
             is_archived: false

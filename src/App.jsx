@@ -294,7 +294,7 @@ export default function App() {
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
                                         {tasks
-                                            .filter(t => t.assignee === selectedMember && t.status !== 'Deleted' && !t.is_archived)
+                                            .filter(t => t.assignee === selectedMember && t.status !== 'Deleted' && t.status !== 'Done' && !t.is_archived)
                                             .map(task => (
                                                 <tr key={task.id} className={`hover:bg-blue-600/[0.03] transition-colors group ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'bg-red-900/10' : ''}`}>
                                                     <td className="px-6 py-4">
@@ -406,7 +406,7 @@ export default function App() {
                                 <div key={task.id} className="flex justify-between items-center py-3 border-b border-slate-800 last:border-0">
                                     <div>
                                         <div className="text-xs text-slate-500 font-bold mb-1">{task.assignee}</div>
-                                        <div className="text-sm text-slate-400 line-through">{task.action}</div>
+                                        <div className="text-sm text-slate-400">{task.action}</div>
                                     </div>
                                     <div className="text-xs text-slate-600">Deleted on {formatDate(task.deletion_date)}</div>
                                 </div>
