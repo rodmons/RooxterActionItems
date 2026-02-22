@@ -35,6 +35,7 @@ export default function App() {
         deleteContext,
         updateTask,
         deleteTask,
+        permanentlyDeleteTask,
         resetData,
         loading
     } = useTasks();
@@ -363,12 +364,21 @@ export default function App() {
                         </p>
                         <div className="text-left bg-slate-900/50 p-6 rounded-2xl max-h-96 overflow-y-auto w-full max-w-4xl mx-auto">
                             {tasks.filter(t => t.status === 'Done' || t.is_archived).map(task => (
-                                <div key={task.id} className="flex justify-between items-center py-3 border-b border-slate-800 last:border-0">
+                                <div key={task.id} className="flex justify-between items-center py-3 border-b border-slate-800 last:border-0 group transition-colors hover:bg-slate-800/30 px-4 -mx-4 rounded-xl">
                                     <div>
                                         <div className="text-xs text-slate-500 font-bold mb-1">{task.assignee}</div>
                                         <div className="text-sm text-slate-300">{task.action}</div>
                                     </div>
-                                    <div className="text-xs text-slate-600">{formatDate(task.date || task.created_at)}</div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="text-xs text-slate-600">{formatDate(task.date || task.created_at)}</div>
+                                        <button
+                                            onClick={() => { if (confirm("Are you sure you want to PERMANENTLY delete this archived item? This cannot be undone.")) permanentlyDeleteTask(task.id); }}
+                                            className="opacity-0 group-hover:opacity-100 p-2 text-slate-600 hover:text-red-500 transition-all transform hover:scale-110"
+                                            title="Permanently Delete"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                             {tasks.filter(t => t.status === 'Done' || t.is_archived).length === 0 && (
@@ -388,12 +398,21 @@ export default function App() {
                         </p>
                         <div className="text-left bg-slate-900/50 p-6 rounded-2xl max-h-96 overflow-y-auto w-full max-w-4xl mx-auto">
                             {tasks.filter(t => t.status === 'Deleted').map(task => (
-                                <div key={task.id} className="flex justify-between items-center py-3 border-b border-slate-800 last:border-0">
+                                <div key={task.id} className="flex justify-between items-center py-3 border-b border-slate-800 last:border-0 group transition-colors hover:bg-slate-800/30 px-4 -mx-4 rounded-xl">
                                     <div>
                                         <div className="text-xs text-slate-500 font-bold mb-1">{task.assignee}</div>
                                         <div className="text-sm text-slate-400">{task.action}</div>
                                     </div>
-                                    <div className="text-xs text-slate-600">Deleted on {formatDate(task.deletion_date)}</div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="text-xs text-slate-600">Deleted on {formatDate(task.deletion_date)}</div>
+                                        <button
+                                            onClick={() => { if (confirm("Are you sure? This will remove the item from the system forever.")) permanentlyDeleteTask(task.id); }}
+                                            className="opacity-0 group-hover:opacity-100 flex items-center gap-2 text-xs font-bold uppercase text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-red-600"
+                                            title="Permanently Delete"
+                                        >
+                                            <Trash2 className="w-3 h-3" /> Delete Forever
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                             {tasks.filter(t => t.status === 'Deleted').length === 0 && (

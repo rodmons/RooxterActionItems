@@ -233,6 +233,15 @@ export function useTasks() {
         }
     };
 
+    const permanentlyDeleteTask = async (id) => {
+        setTasks(tasks.filter(t => t.id !== id));
+        const { error } = await supabase.from('tasks').delete().eq('id', id);
+        if (error) {
+            console.error('Error permanently deleting task:', error);
+            fetchData();
+        }
+    };
+
     const resetData = async () => {
         if (confirm('Reload data from server?')) {
             fetchData();
@@ -254,6 +263,7 @@ export function useTasks() {
         deleteContext,
         updateTask,
         deleteTask,
+        permanentlyDeleteTask,
         resetData,
         loading
     };
