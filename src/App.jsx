@@ -229,9 +229,9 @@ export default function App() {
                 {/* View: Dashboard */}
                 {activeTab === 'dashboard' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        <StatCard label="Critical (P1)" value={stats.p1} icon={Zap} color="text-amber-400" bgColor="bg-amber-400/10" onClick={() => setModalFilter('P1')} />
-                        <StatCard label="Priority 2 (P2)" value={stats.p2} icon={Calendar} color="text-orange-400" bgColor="bg-orange-400/10" onClick={() => setModalFilter('P2')} />
-                        <StatCard label="Priority 3 (P3)" value={stats.p3} icon={Calendar} color="text-blue-400" bgColor="bg-blue-400/10" onClick={() => setModalFilter('P3')} />
+                        <StatCard label="Critical (P1)" value={stats.p1} icon={Zap} color="text-amber-400" bgColor="bg-amber-400/10" valueColor="text-slate-400" onClick={() => setModalFilter('P1')} />
+                        <StatCard label="Priority 2 (P2)" value={stats.p2} icon={Calendar} color="text-orange-400" bgColor="bg-orange-400/10" valueColor="text-slate-400" onClick={() => setModalFilter('P2')} />
+                        <StatCard label="Priority 3 (P3)" value={stats.p3} icon={Calendar} color="text-blue-400" bgColor="bg-blue-400/10" valueColor="text-slate-400" onClick={() => setModalFilter('P3')} />
                         <StatCard label="Backburner" value={stats.backburner} icon={Coffee} color="text-slate-400" bgColor="bg-slate-400/10" onClick={() => setModalFilter('Backburner')} />
                         <StatCard label="COMPLETED TASKS (7 days)" value={stats.completed} icon={CheckCircle2} color="text-emerald-400" bgColor="bg-emerald-400/10" onClick={() => setModalFilter('Completed')} />
                         <StatCard label="Overdue" value={stats.overdue} icon={OctagonAlert} color="text-red-500" bgColor="bg-red-500/10" onClick={() => setModalFilter('Overdue')} />
@@ -443,8 +443,10 @@ export default function App() {
                             <X className="w-5 h-5" />
                         </button>
                         <h2 className="text-2xl font-black mb-6 text-white tracking-widest uppercase flex items-center gap-3">
-                            {modalFilter} Tasks
-                            <span className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full">{getModalTasks().length}</span>
+                            {modalFilter === 'Completed' ? 'COMPLETED TASKS (7 days)' : `${modalFilter} Tasks`}
+                            <span className={`${modalFilter === 'Completed' ? 'bg-emerald-500' : 'bg-blue-600'} text-white text-xs px-3 py-1 rounded-full`}>
+                                {getModalTasks().length}
+                            </span>
                         </h2>
 
                         <div className="overflow-x-auto no-scrollbar max-h-[60vh]">
@@ -625,7 +627,7 @@ function ContextDropdown({ contexts, value, onSelect, onAdd, onDelete }) {
 }
 
 // --- Internal Components ---
-function StatCard({ label, value, icon: Icon, color, bgColor, onClick }) {
+function StatCard({ label, value, icon: Icon, color, bgColor, valueColor, onClick }) {
     return (
         <div
             onClick={onClick}
@@ -640,7 +642,7 @@ function StatCard({ label, value, icon: Icon, color, bgColor, onClick }) {
                     <Icon className={`w-5 h-5 ${color}`} />
                 </div>
             </div>
-            <div className={`text-5xl font-black tracking-tighter relative z-10 ${color}`}>{value}</div>
+            <div className={`text-5xl font-black tracking-tighter relative z-10 ${valueColor || color}`}>{value}</div>
         </div>
     );
 }
