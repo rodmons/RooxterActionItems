@@ -152,11 +152,11 @@ export default function App() {
                     </div>
                 </header>
 
-                {/* Global Navigation */}
-                <nav className="flex flex-wrap gap-2 bg-slate-900/40 backdrop-blur-md border border-slate-800/50 p-1.5 rounded-2xl w-fit mb-10 relative z-20">
+                {/* Global Navigation - Adjusted for Mobile Stability */}
+                <nav className="flex flex-wrap items-center gap-2 bg-slate-900/40 backdrop-blur-md border border-slate-800/50 p-1.5 rounded-2xl w-full md:w-fit mb-10 relative z-30">
                     <button
                         onClick={() => setActiveTab('dashboard')}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'dashboard'
+                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'dashboard'
                             ? 'bg-blue-600 text-white shadow-lg'
                             : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                             }`}
@@ -164,21 +164,23 @@ export default function App() {
                         <LayoutDashboard className="w-4 h-4" /> Overview
                     </button>
 
-                    <div className="relative">
+                    <div className="relative flex-1 md:flex-none">
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'team'
+                            className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'team'
                                 ? 'bg-blue-600 text-white shadow-lg'
                                 : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                                 }`}
                         >
                             <Users className="w-4 h-4" />
-                            {selectedMember ? selectedMember : "Team Member"}
+                            <span className="truncate max-w-[100px] md:max-w-none">
+                                {selectedMember ? selectedMember : "Team Member"}
+                            </span>
                             <ChevronDown className={`w-3 h-3 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
 
                         {isDropdownOpen && (
-                            <div className="absolute top-full left-0 mt-2 w-56 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2">
+                            <div className="absolute top-[calc(100%+0.5rem)] left-0 w-full min-w-[224px] bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2">
                                 {teamMembers.map(member => (
                                     <button
                                         key={member.id}
@@ -201,7 +203,7 @@ export default function App() {
 
                     <button
                         onClick={() => setActiveTab('backlog')}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'backlog'
+                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'backlog'
                             ? 'bg-blue-600 text-white shadow-lg'
                             : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                             }`}
@@ -211,7 +213,7 @@ export default function App() {
 
                     <button
                         onClick={() => setActiveTab('deleted')}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all text-sm ${(activeTab === 'deleted')
+                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all text-sm ${(activeTab === 'deleted')
                             ? 'bg-red-600 text-white shadow-lg'
                             : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                             }`}
