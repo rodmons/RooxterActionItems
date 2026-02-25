@@ -16,7 +16,8 @@ import {
     UserPlus,
     Pencil,
     X,
-    Coffee
+    Coffee,
+    CalendarDays
 } from 'lucide-react';
 import { useTasks } from './hooks/useTasks';
 import { STATUS_OPTIONS, DUE_BY_OPTIONS } from './constants';
@@ -44,7 +45,38 @@ export default function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [selectedMember, setSelectedMember] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [modalFilter, setModalFilter] = useState(null); // 'P1', 'P2', 'P3', 'Completed', 'Overdue'
+    const [modalFilter, setModalFilter] = useState(null); // 'P1', 'P2', 'P3', 'Completed', 'Overdue', 'Backburner'
+
+    // Calendar Tasks Logic
+    const calendarDays = React.useMemo(() => {
+        // Filter out completed, deleted, archived, backburner, and missing target_deadline
+        let calendarTasks = tasks.filter(t =>
+            t.status !== 'Done' &&
+            t.status !== 'Deleted' &&
+            !t.is_archived &&
+            t.priority !== 'Backburner' &&
+            t.target_deadline
+        );
+
+        // Sort by assignee (ascending), then urgency
+        const weightMap = { '1 hr': 1, '6 hrs': 2, 'Today': 3, '3 days': 4, 'This Week': 5, 'This Month': 6 };
+        calendarTasks.sort((a, b) => {
+            if (a.assignee < b.assignee) return -1;
+            if (a.assignee > b.assignee) return 1;
+            const weightA = weightMap[a.due_by_type] || 99;
+            const weightB = weightMap[b.due_by_type] || 99;
+            return weightA - weightB;
+        });
+
+        // Group by local date string
+        const grouped = {};
+        calendarTasks.forEach(t => {
+            const dateStr = new Date(t.target_deadline).toLocaleDateString('en-US'); // MM/DD/YYYY format
+            if (!grouped[dateStr]) grouped[dateStr] = [];
+            grouped[dateStr].push(t);
+        });
+        return grouped;
+    }, [tasks]);
 
     if (loading) {
         return (
@@ -206,6 +238,16 @@ export default function App() {
                     </div>
 
                     <button
+                        onClick={() => setActiveTab('calendar')}
+                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'calendar'
+                            ? 'bg-blue-600 text-white shadow-lg'
+                            : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+                            }`}
+                    >
+                        <CalendarDays className="w-4 h-4" /> Calendar
+                    </button>
+
+                    <button
                         onClick={() => setActiveTab('backlog')}
                         className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'backlog'
                             ? 'bg-blue-600 text-white shadow-lg'
@@ -225,6 +267,64 @@ export default function App() {
                         <Trash2 className="w-4 h-4" /> Deleted
                     </button>
                 </nav>
+
+                {/* View: Calendar */}
+                {activeTab === 'calendar' && (
+                    <div className="glass p-8 rounded-[3rem] animate-in fade-in duration-700">
+                        <div className="flex items-center gap-4 mb-8">
+                            <CalendarDays className="w-8 h-8 text-blue-400" />
+                            <h2 className="text-3xl font-black tracking-tight">Active Calendar</h2>
+                        </div>
+
+                        {/* Month Grid */}
+                        <div className="grid grid-cols-7 gap-2">
+                            {/* Headers */}
+                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                                <div key={day} className="text-center text-xs font-black uppercase text-slate-500 py-2 border-b border-slate-700">
+                                    {day}
+                                </div>
+                            ))}
+
+                            {/* Generate current month cells */}
+                            {Array.from({ length: 35 }).map((_, i) => {
+                                // Simple mapping for the current view demo. 
+                                // Ideally, align absolute dates to the correct weekday offset.
+                                const today = new Date();
+                                const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                                const offset = firstDay.getDay();
+                                const dateCount = i - offset + 1;
+                                const isCurrentMonth = dateCount > 0 && dateCount <= new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+
+                                const cellDate = new Date(today.getFullYear(), today.getMonth(), dateCount);
+                                const dateStr = cellDate.toLocaleDateString('en-US');
+                                const dayTasks = isCurrentMonth && calendarDays[dateStr] ? calendarDays[dateStr] : [];
+
+                                return (
+                                    <div key={i} className={`min-h-[150px] p-2 border border-slate-800/50 rounded-xl flex flex-col ${isCurrentMonth ? 'bg-slate-900/30' : 'bg-slate-900/10 opacity-30'} overflow-y-auto no-scrollbar`}>
+                                        <div className={`text-xs font-bold mb-2 ${isCurrentMonth ? 'text-slate-400' : 'text-slate-600'}`}>
+                                            {isCurrentMonth ? cellDate.getDate() : ''}
+                                        </div>
+                                        <div className="flex-1 flex flex-col gap-1">
+                                            {dayTasks.map(task => (
+                                                <div
+                                                    key={task.id}
+                                                    className={`text-[10px] p-1.5 rounded border bg-slate-800/80 transition-all hover:scale-[1.02] cursor-default
+                                                        ${task.priority?.includes('P1') ? 'border-amber-500/50 text-amber-200' :
+                                                            task.priority?.includes('P2') ? 'border-orange-500/50 text-orange-200' :
+                                                                'border-blue-500/50 text-blue-200'}`}
+                                                >
+                                                    <div className="font-black truncate">{task.assignee}</div>
+                                                    <div className="truncate opacity-80">{task.action}</div>
+                                                    <div className="text-[8px] uppercase mt-0.5 opacity-60 font-mono tracking-wider">{task.due_by_type}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 {/* View: Dashboard */}
                 {activeTab === 'dashboard' && (
