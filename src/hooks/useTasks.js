@@ -13,6 +13,7 @@ const calculateStats = (tasks) => {
         p1: tasks.filter(t => t.priority && t.priority.includes('P1') && t.status !== 'Done' && t.status !== 'Deleted' && !t.is_archived).length,
         p2: tasks.filter(t => t.priority && t.priority.includes('P2') && t.status !== 'Done' && t.status !== 'Deleted' && !t.is_archived).length,
         p3: tasks.filter(t => t.priority && t.priority.includes('P3') && t.status !== 'Done' && t.status !== 'Deleted' && !t.is_archived).length,
+        backburner: tasks.filter(t => t.priority === 'Backburner' && t.status !== 'Done' && t.status !== 'Deleted' && !t.is_archived).length,
         // Completed only in last 7 days
         completed: tasks.filter(t => {
             if (t.status !== 'Done') return false;

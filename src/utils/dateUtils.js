@@ -47,6 +47,8 @@ export function calculateTargetDeadline(dueByType) {
             const month = now.getMonth();
             const lastDay = new Date(year, month + 1, 0, 23, 59, 59, 999);
             return lastDay.toISOString();
+        case 'Backburner':
+            return null;
         default:
             return null;
     }
@@ -56,6 +58,7 @@ export function getPriorityFromDueByType(dueByType) {
     if (['1 hr', '6 hrs', 'Today'].includes(dueByType)) return 'P1 (Critical)';
     if (['3 days', 'This Week'].includes(dueByType)) return 'P2';
     if (['This Month'].includes(dueByType)) return 'P3';
+    if (dueByType === 'Backburner') return 'Backburner';
     return 'P3';
 }
 

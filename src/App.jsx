@@ -15,7 +15,8 @@ import {
     ChevronDown,
     UserPlus,
     Pencil,
-    X
+    X,
+    Coffee
 } from 'lucide-react';
 import { useTasks } from './hooks/useTasks';
 import { STATUS_OPTIONS, DUE_BY_OPTIONS } from './constants';
@@ -107,6 +108,9 @@ export default function App() {
                 break;
             case 'P3':
                 filtered = tasks.filter(t => t.priority && t.priority.includes('P3') && t.status !== 'Done' && t.status !== 'Deleted' && !t.is_archived);
+                break;
+            case 'Backburner':
+                filtered = tasks.filter(t => t.priority === 'Backburner' && t.status !== 'Done' && t.status !== 'Deleted' && !t.is_archived);
                 break;
             case 'Completed':
                 filtered = tasks.filter(t => {
@@ -224,10 +228,11 @@ export default function App() {
 
                 {/* View: Dashboard */}
                 {activeTab === 'dashboard' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <StatCard label="Critical (P1)" value={stats.p1} icon={Zap} color="text-amber-400" bgColor="bg-amber-400/10" onClick={() => setModalFilter('P1')} />
                         <StatCard label="Priority 2 (P2)" value={stats.p2} icon={Calendar} color="text-orange-400" bgColor="bg-orange-400/10" onClick={() => setModalFilter('P2')} />
                         <StatCard label="Priority 3 (P3)" value={stats.p3} icon={Calendar} color="text-blue-400" bgColor="bg-blue-400/10" onClick={() => setModalFilter('P3')} />
+                        <StatCard label="Backburner" value={stats.backburner} icon={Coffee} color="text-slate-400" bgColor="bg-slate-400/10" onClick={() => setModalFilter('Backburner')} />
                         <StatCard label="Completed (7d)" value={stats.completed} icon={CheckCircle2} color="text-emerald-400" bgColor="bg-emerald-400/10" onClick={() => setModalFilter('Completed')} />
                         <StatCard label="Overdue" value={stats.overdue} icon={OctagonAlert} color="text-red-500" bgColor="bg-red-500/10" onClick={() => setModalFilter('Overdue')} />
 
@@ -457,17 +462,17 @@ export default function App() {
                                     {getModalTasks().map(task => (
                                         <tr key={task.id} className="hover:bg-slate-800/50 transition-colors">
                                             <td className="px-4 py-4 text-sm font-bold text-blue-300">{task.assignee}</td>
-                                            <td className="px-4 py-4 text-sm font-semibold text-slate-200">{task.action}</td>
+                                            <td className={`px-4 py-4 text-sm font-semibold ${task.status === 'Done' ? 'text-emerald-400' : 'text-slate-200'}`}>{task.action}</td>
                                             <td className="px-4 py-4 text-xs font-bold text-slate-400">
                                                 {task.due_by_type}
-                                                {isTaskOverdue(task.target_deadline) && <span className="text-red-500 ml-2">(Overdue)</span>}
+                                                {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && <span className="text-red-500 ml-2">(Overdue)</span>}
                                             </td>
                                             <td className="px-4 py-4">
                                                 <input
                                                     type="checkbox"
                                                     checked={task.status === 'Done'}
                                                     onChange={(e) => updateTask(task.id, 'status', e.target.checked ? 'Done' : 'To Do')}
-                                                    className="w-5 h-5 rounded border-slate-600 text-blue-600 focus:ring-blue-500 bg-slate-900 cursor-pointer"
+                                                    className="w-5 h-5 rounded border-slate-600 accent-emerald-500 focus:ring-emerald-500 bg-slate-900 cursor-pointer"
                                                 />
                                             </td>
                                             <td className="px-4 py-4 text-xs font-mono text-slate-500">

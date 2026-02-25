@@ -6,12 +6,13 @@ export const STATUS_OPTIONS = [
     { value: 'Deleted', label: 'Deleted', color: 'slate' }
 ];
 
-export const DUE_BY_OPTIONS = ['1 hr', '6 hrs', 'Today', '3 days', 'This Week', 'This Month'];
+export const DUE_BY_OPTIONS = ['1 hr', '6 hrs', 'Today', '3 days', 'This Week', 'This Month', 'Backburner'];
 
 export const PRIORITY_OPTIONS = [
     { value: 'P1 (Critical)', label: 'P1 (Critical)' },
     { value: 'P2', label: 'P2' },
-    { value: 'P3', label: 'P3' }
+    { value: 'P3', label: 'P3' },
+    { value: 'Backburner', label: 'Backburner' }
 ];
 
 // Note: ENERGY_OPTIONS, etc. are preserved if used elsewhere, but not explicitly requested.
