@@ -281,7 +281,7 @@ export default function App() {
 
                         <div className="glass rounded-[2.5rem] border border-white/5 min-h-[450px]">
                             <div className="overflow-visible no-scrollbar">
-                                <table className="w-full min-w-max text-left border-collapse whitespace-nowrap">
+                                <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-900/30 border-b border-white/5 text-slate-500 text-[10px] uppercase tracking-[0.2em]">
                                             <th className="px-6 py-5 font-bold">Status</th>
@@ -312,7 +312,7 @@ export default function App() {
                                                             <div className="text-[9px] text-red-500 font-bold uppercase mt-1">Overdue!</div>
                                                         )}
                                                     </td>
-                                                    <td className="px-6 py-4 w-full min-w-[250px] whitespace-normal">
+                                                    <td className="px-6 py-4 min-w-[250px]">
                                                         <input
                                                             value={task.action}
                                                             onChange={(e) => updateTask(task.id, 'action', e.target.value)}
@@ -450,7 +450,7 @@ export default function App() {
                         </h2>
 
                         <div className="overflow-x-auto no-scrollbar max-h-[60vh]">
-                            <table className="w-full min-w-max text-left border-collapse whitespace-nowrap">
+                            <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-slate-900/30 border-b border-white/5 text-slate-500 text-[10px] uppercase tracking-[0.2em] sticky top-0 backdrop-blur-md">
                                         <th className="px-4 py-4 font-bold">Team</th>
