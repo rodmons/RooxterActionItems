@@ -233,7 +233,7 @@ export default function App() {
                         <StatCard label="Priority 2 (P2)" value={stats.p2} icon={Calendar} color="text-orange-400" bgColor="bg-orange-400/10" onClick={() => setModalFilter('P2')} />
                         <StatCard label="Priority 3 (P3)" value={stats.p3} icon={Calendar} color="text-blue-400" bgColor="bg-blue-400/10" onClick={() => setModalFilter('P3')} />
                         <StatCard label="Backburner" value={stats.backburner} icon={Coffee} color="text-slate-400" bgColor="bg-slate-400/10" onClick={() => setModalFilter('Backburner')} />
-                        <StatCard label="Completed (7d)" value={stats.completed} icon={CheckCircle2} color="text-emerald-400" bgColor="bg-emerald-400/10" onClick={() => setModalFilter('Completed')} />
+                        <StatCard label="COMPLETED TASKS (7 days)" value={stats.completed} icon={CheckCircle2} color="text-emerald-400" bgColor="bg-emerald-400/10" onClick={() => setModalFilter('Completed')} />
                         <StatCard label="Overdue" value={stats.overdue} icon={OctagonAlert} color="text-red-500" bgColor="bg-red-500/10" onClick={() => setModalFilter('Overdue')} />
 
                         <div className="col-span-full glass p-8 rounded-[2.5rem] mt-4">
@@ -640,7 +640,7 @@ function StatCard({ label, value, icon: Icon, color, bgColor, onClick }) {
                     <Icon className={`w-5 h-5 ${color}`} />
                 </div>
             </div>
-            <div className="text-5xl font-black tracking-tighter relative z-10">{value}</div>
+            <div className={`text-5xl font-black tracking-tighter relative z-10 ${color}`}>{value}</div>
         </div>
     );
 }
