@@ -575,10 +575,10 @@ export default function App() {
                                         <div key={task.id} className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0 group transition-colors hover:bg-slate-800/30 px-4 -mx-4 rounded-xl w-full overflow-hidden">
                                             <div className="flex items-center flex-1 min-w-0 pr-8">
                                                 <span className="text-slate-500 text-sm font-bold shrink-0 w-20">{task.assignee}</span>
-                                                <span className="text-slate-300 text-sm font-bold truncate shrink">{task.action}</span>
+                                                <span className="text-slate-300 text-xs font-light truncate shrink">{task.action}</span>
                                             </div>
-                                            <div className="flex items-center justify-end gap-12 shrink-0 text-slate-500 text-sm font-bold mr-4 w-[250px]">
-                                                <span className="truncate flex-1 text-right">{task.category || ' '}</span>
+                                            <div className="flex items-center justify-end gap-12 shrink-0 text-slate-500 text-sm font-bold mr-4 w-[350px]">
+                                                <span className="flex-1 text-right">{task.category || ' '}</span>
                                                 <span className="shrink-0 w-[100px] text-right">{formatDate(task.date || task.created_at)}</span>
                                             </div>
                                             <button
