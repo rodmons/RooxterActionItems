@@ -17,7 +17,9 @@ import {
     Pencil,
     X,
     Coffee,
-    CalendarDays
+    CalendarDays,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import { useTasks } from './hooks/useTasks';
 import { STATUS_OPTIONS, DUE_BY_OPTIONS } from './constants';
@@ -46,6 +48,7 @@ export default function App() {
     const [selectedMember, setSelectedMember] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [modalFilter, setModalFilter] = useState(null); // 'P1', 'P2', 'P3', 'Completed', 'Overdue', 'Backburner'
+    const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
 
     // Calendar Tasks Logic
     const calendarDays = React.useMemo(() => {
@@ -154,6 +157,9 @@ export default function App() {
             case 'Overdue':
                 filtered = tasks.filter(t => t.status !== 'Done' && t.status !== 'Deleted' && !t.is_archived && isTaskOverdue(t.target_deadline));
                 break;
+            case 'Archive':
+                filtered = tasks.filter(t => t.status === 'Done' || t.is_archived);
+                break;
             default:
                 break;
         }
@@ -247,16 +253,7 @@ export default function App() {
                         <CalendarDays className="w-4 h-4" /> Calendar
                     </button>
 
-                    <button
-                        onClick={() => setActiveTab('backlog')}
-                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'backlog'
-                            ? 'bg-blue-600 text-white shadow-lg'
-                            : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
-                            }`}
-                    >
-                        <Archive className="w-4 h-4" /> Archive
-                    </button>
-
+                    {/* View: Deleted / Trash (Temporarily Hidden)
                     <button
                         onClick={() => setActiveTab('deleted')}
                         className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all text-sm ${(activeTab === 'deleted')
@@ -266,6 +263,7 @@ export default function App() {
                     >
                         <Trash2 className="w-4 h-4" /> Deleted
                     </button>
+                    */}
                 </nav>
 
                 {/* View: Calendar */}
@@ -273,7 +271,23 @@ export default function App() {
                     <div className="glass p-8 rounded-[3rem] animate-in fade-in duration-700">
                         <div className="flex items-center gap-4 mb-8">
                             <CalendarDays className="w-8 h-8 text-blue-400" />
-                            <h2 className="text-3xl font-black tracking-tight">Active Calendar</h2>
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={() => setCurrentMonthDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))}
+                                    className="p-1 hover:bg-slate-800 rounded-lg transition-colors"
+                                >
+                                    <ChevronLeft className="w-8 h-8 text-blue-500" />
+                                </button>
+                                <h2 className="text-3xl font-black tracking-tight uppercase min-w-[180px] text-center">
+                                    {currentMonthDate.toLocaleString('default', { month: 'short' })} {currentMonthDate.getFullYear()}
+                                </h2>
+                                <button
+                                    onClick={() => setCurrentMonthDate(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))}
+                                    className="p-1 hover:bg-slate-800 rounded-lg transition-colors"
+                                >
+                                    <ChevronRight className="w-8 h-8 text-blue-500" />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Month Grid */}
@@ -286,42 +300,52 @@ export default function App() {
                             ))}
 
                             {/* Generate current month cells */}
-                            {Array.from({ length: 35 }).map((_, i) => {
-                                // Simple mapping for the current view demo. 
-                                // Ideally, align absolute dates to the correct weekday offset.
-                                const today = new Date();
-                                const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                            {(() => {
+                                const firstDay = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), 1);
                                 const offset = firstDay.getDay();
-                                const dateCount = i - offset + 1;
-                                const isCurrentMonth = dateCount > 0 && dateCount <= new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+                                const daysInMonth = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 0).getDate();
+                                const totalCells = Math.ceil((offset + daysInMonth) / 7) * 7;
 
-                                const cellDate = new Date(today.getFullYear(), today.getMonth(), dateCount);
-                                const dateStr = cellDate.toLocaleDateString('en-US');
-                                const dayTasks = isCurrentMonth && calendarDays[dateStr] ? calendarDays[dateStr] : [];
+                                return Array.from({ length: totalCells }).map((_, i) => {
+                                    const dateCount = i - offset + 1;
+                                    const isCurrentMonth = dateCount > 0 && dateCount <= daysInMonth;
 
-                                return (
-                                    <div key={i} className={`min-h-[150px] p-2 border border-slate-800/50 rounded-xl flex flex-col ${isCurrentMonth ? 'bg-slate-900/30' : 'bg-slate-900/10 opacity-30'} overflow-y-auto no-scrollbar`}>
-                                        <div className={`text-xs font-bold mb-2 ${isCurrentMonth ? 'text-slate-400' : 'text-slate-600'}`}>
-                                            {isCurrentMonth ? cellDate.getDate() : ''}
-                                        </div>
-                                        <div className="flex-1 flex flex-col gap-1">
-                                            {dayTasks.map(task => (
-                                                <div
-                                                    key={task.id}
-                                                    className={`text-[10px] p-1.5 rounded border bg-slate-800/80 transition-all hover:scale-[1.02] cursor-default
-                                                        ${task.priority?.includes('P1') ? 'border-amber-500/50 text-amber-200' :
-                                                            task.priority?.includes('P2') ? 'border-orange-500/50 text-orange-200' :
-                                                                'border-blue-500/50 text-blue-200'}`}
-                                                >
-                                                    <div className="font-black truncate">{task.assignee}</div>
-                                                    <div className="truncate opacity-80">{task.action}</div>
-                                                    <div className="text-[8px] uppercase mt-0.5 opacity-60 font-mono tracking-wider">{task.due_by_type}</div>
+                                    if (!isCurrentMonth) {
+                                        return <div key={i} className="h-40 p-2 border border-transparent rounded-xl flex flex-col bg-transparent"></div>;
+                                    }
+
+                                    const cellDate = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), dateCount);
+                                    const dateStr = cellDate.toLocaleDateString('en-US');
+                                    const dayTasks = calendarDays[dateStr] ? calendarDays[dateStr] : [];
+
+                                    const isToday = cellDate.toDateString() === new Date().toDateString();
+
+                                    return (
+                                        <div key={i} className="h-40 p-2 border border-slate-800/50 rounded-xl flex flex-col bg-slate-900/30">
+                                            <div className="flex justify-start mb-2 shrink-0">
+                                                <div className={`w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold ${isToday ? 'bg-blue-400/20 border border-blue-500 text-blue-400' : 'text-slate-400'}`}>
+                                                    {dateCount}
                                                 </div>
-                                            ))}
+                                            </div>
+                                            <div className="flex-1 flex flex-col gap-1 overflow-y-auto no-scrollbar">
+                                                {dayTasks.map(task => (
+                                                    <div
+                                                        key={task.id}
+                                                        className={`text-[10px] p-1.5 rounded border bg-slate-800/80 transition-all hover:scale-[1.02] cursor-default
+                                                            ${task.priority?.includes('P1') ? 'border-amber-500/50 text-amber-200' :
+                                                                task.priority?.includes('P2') ? 'border-orange-500/50 text-orange-200' :
+                                                                    'border-blue-500/50 text-blue-200'}`}
+                                                    >
+                                                        <div className="font-black truncate">{task.assignee}</div>
+                                                        <div className="truncate opacity-80">{task.action}</div>
+                                                        <div className="text-[8px] uppercase mt-0.5 opacity-60 font-mono tracking-wider">{task.due_by_type}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                });
+                            })()}
                         </div>
                     </div>
                 )}
@@ -334,7 +358,6 @@ export default function App() {
                         <StatCard label="Priority 3 (P3)" value={stats.p3} icon={Calendar} color="text-blue-400" bgColor="bg-blue-400/10" valueColor="text-slate-400" onClick={() => setModalFilter('P3')} />
                         <StatCard label="Backburner" value={stats.backburner} icon={Coffee} color="text-slate-400" bgColor="bg-slate-400/10" onClick={() => setModalFilter('Backburner')} />
                         <StatCard label="COMPLETED TASKS (7 days)" value={stats.completed} icon={CheckCircle2} color="text-emerald-400" bgColor="bg-emerald-400/10" onClick={() => setModalFilter('Completed')} />
-                        <StatCard label="Overdue" value={stats.overdue} icon={OctagonAlert} color="text-red-500" bgColor="bg-red-500/10" onClick={() => setModalFilter('Overdue')} />
 
                         <div className="col-span-full glass p-8 rounded-[2.5rem] mt-4">
                             <h3 className="text-xl font-bold mb-4">Active Team Roster</h3>
@@ -408,9 +431,6 @@ export default function App() {
                                                         >
                                                             {STATUS_OPTIONS.filter(o => o.value !== 'Deleted').map(opt => <option key={opt.value} value={opt.value} className="bg-slate-900">{opt.label}</option>)}
                                                         </select>
-                                                        {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && (
-                                                            <div className="text-[9px] text-red-500 font-bold uppercase mt-1">Overdue!</div>
-                                                        )}
                                                     </td>
                                                     <td className="px-6 py-4 min-w-[250px]">
                                                         <input
@@ -430,13 +450,18 @@ export default function App() {
                                                         />
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <select
-                                                            value={task.due_by_type || ''}
-                                                            onChange={(e) => updateTask(task.id, 'due_by_type', e.target.value)}
-                                                            className="bg-slate-800/60 border border-slate-700 text-slate-300 text-xs font-bold rounded-lg px-2 py-1.5 outline-none cursor-pointer hover:bg-slate-700 transition-colors appearance-auto"
-                                                        >
-                                                            {DUE_BY_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-slate-900">{opt}</option>)}
-                                                        </select>
+                                                        <div className="flex items-center gap-2">
+                                                            <DueByDropdown
+                                                                value={task.due_by_type || ''}
+                                                                priority={task.priority}
+                                                                onSelect={(val) => updateTask(task.id, 'due_by_type', val)}
+                                                            />
+                                                            {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && (
+                                                                <span className="text-[10px] text-red-500 font-bold uppercase whitespace-nowrap">
+                                                                    Overdue!
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
                                                         <button
@@ -457,40 +482,6 @@ export default function App() {
                                     </div>
                                 )}
                             </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* View: Archive / Backlog */}
-                {activeTab === 'backlog' && (
-                    <div className="glass p-12 rounded-[3rem] text-center border-dashed border-2 border-white/5 animate-in fade-in duration-700">
-                        <Archive className="w-16 h-16 text-slate-800 mx-auto mb-6" />
-                        <h2 className="text-3xl font-black mb-4 tracking-tight">System Archive</h2>
-                        <p className="text-slate-500 max-w-md mx-auto font-medium mb-8">
-                            Completed items and tasks from deleted team members are stored here for historical reference.
-                        </p>
-                        <div className="text-left bg-slate-900/50 p-6 rounded-2xl max-h-96 overflow-y-auto w-full max-w-4xl mx-auto">
-                            {tasks.filter(t => t.status === 'Done' || t.is_archived).map(task => (
-                                <div key={task.id} className="flex justify-between items-center py-3 border-b border-slate-800 last:border-0 group transition-colors hover:bg-slate-800/30 px-4 -mx-4 rounded-xl">
-                                    <div>
-                                        <div className="text-xs text-slate-500 font-bold mb-1">{task.assignee}</div>
-                                        <div className="text-sm text-slate-300">{task.action}</div>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="text-xs text-slate-600">{formatDate(task.date || task.created_at)}</div>
-                                        <button
-                                            onClick={() => { if (confirm("Are you sure you want to PERMANENTLY delete this archived item? This cannot be undone.")) permanentlyDeleteTask(task.id); }}
-                                            className="opacity-0 group-hover:opacity-100 p-2 text-slate-600 hover:text-red-500 transition-all transform hover:scale-110"
-                                            title="Permanently Delete"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                            {tasks.filter(t => t.status === 'Done' || t.is_archived).length === 0 && (
-                                <div className="text-slate-600 italic text-center py-4">Archive empty.</div>
-                            )}
                         </div>
                     </div>
                 )}
@@ -536,59 +527,101 @@ export default function App() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setModalFilter(null)}></div>
                     <div className="relative glass w-full max-w-4xl rounded-[2.5rem] border border-white/10 p-8 shadow-2xl animate-in zoom-in-95 duration-200">
-                        <button
-                            onClick={() => setModalFilter(null)}
-                            className="absolute top-6 right-6 p-2 bg-slate-800/50 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
+
+                        {/* Action Corner: Toggles and Close */}
+                        <div className="absolute top-6 right-6 flex items-center gap-3 z-10">
+                            {(modalFilter === 'Completed' || modalFilter === 'Archive') && (
+                                <button
+                                    onClick={() => setModalFilter(modalFilter === 'Completed' ? 'Archive' : 'Completed')}
+                                    className="flex items-center gap-2 px-4 py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-all border border-slate-700"
+                                >
+                                    <Archive className="w-4 h-4" />
+                                    {modalFilter === 'Completed' ? 'ARCHIVE' : '7 DAYS COMPLETED'}
+                                </button>
+                            )}
+                            <button
+                                onClick={() => setModalFilter(null)}
+                                className="p-2 bg-slate-800/50 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
                         <h2 className="text-2xl font-black mb-6 text-white tracking-widest uppercase flex items-center gap-3">
-                            {modalFilter === 'Completed' ? 'COMPLETED TASKS (7 days)' : `${modalFilter} Tasks`}
-                            <span className={`${modalFilter === 'Completed' ? 'bg-emerald-500' : 'bg-blue-600'} text-white text-xs px-3 py-1 rounded-full`}>
+                            {modalFilter === 'Completed' ? 'COMPLETED TASKS (7 days)' : modalFilter === 'Archive' ? 'SYSTEM ARCHIVE' : `${modalFilter} Tasks`}
+                            <span className={`${modalFilter === 'Completed' ? 'bg-emerald-500' : modalFilter === 'Archive' ? 'bg-slate-600' : 'bg-blue-600'} text-white text-xs px-3 py-1 rounded-full`}>
                                 {getModalTasks().length}
                             </span>
                         </h2>
 
                         <div className="overflow-x-auto no-scrollbar max-h-[60vh]">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="bg-slate-900/30 border-b border-white/5 text-slate-500 text-[10px] uppercase tracking-[0.2em] sticky top-0 backdrop-blur-md">
-                                        <th className="px-4 py-4 font-bold">Team</th>
-                                        <th className="px-4 py-4 font-bold">Action Item</th>
-                                        <th className="px-4 py-4 font-bold">Due By</th>
-                                        <th className="px-4 py-4 font-bold">Done</th>
-                                        <th className="px-4 py-4 font-bold">Submitted On</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-white/5">
+                            {modalFilter === 'Archive' ? (
+                                <div className="text-left w-full mx-auto pb-4">
                                     {getModalTasks().map(task => (
-                                        <tr key={task.id} className="hover:bg-slate-800/50 transition-colors">
-                                            <td className="px-4 py-4 text-sm font-bold text-blue-300">{task.assignee}</td>
-                                            <td className={`px-4 py-4 text-sm font-semibold ${task.status === 'Done' ? 'text-emerald-400' : 'text-slate-200'}`}>{task.action}</td>
-                                            <td className="px-4 py-4 text-xs font-bold text-slate-400">
-                                                {task.due_by_type}
-                                                {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && <span className="text-red-500 ml-2">(Overdue)</span>}
-                                            </td>
-                                            <td className="px-4 py-4">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={task.status === 'Done'}
-                                                    onChange={(e) => updateTask(task.id, 'status', e.target.checked ? 'Done' : 'To Do')}
-                                                    className="w-5 h-5 rounded border-slate-600 accent-emerald-500 focus:ring-emerald-500 bg-slate-900 cursor-pointer"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-4 text-xs font-mono text-slate-500">
-                                                {formatDate(task.submitted_on || task.created_at)}
-                                            </td>
-                                        </tr>
+                                        <div key={task.id} className="flex justify-between items-center py-4 border-b border-slate-800 last:border-0 group transition-colors hover:bg-slate-800/30 px-4 -mx-4 rounded-xl">
+                                            <div>
+                                                <div className="text-xs text-slate-500 font-bold mb-1">{task.assignee}</div>
+                                                <div className="text-sm text-slate-300">{task.action}</div>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <div className="text-xs text-slate-600">{formatDate(task.date || task.created_at)}</div>
+                                                <button
+                                                    onClick={() => { if (confirm("Are you sure you want to PERMANENTLY delete this archived item? This cannot be undone.")) permanentlyDeleteTask(task.id); }}
+                                                    className="opacity-0 group-hover:opacity-100 p-2 text-slate-600 hover:text-red-500 transition-all transform hover:scale-110"
+                                                    title="Permanently Delete"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
                                     ))}
                                     {getModalTasks().length === 0 && (
-                                        <tr>
-                                            <td colSpan="5" className="px-4 py-12 text-center text-slate-600 italic">No tasks found matching this filter.</td>
-                                        </tr>
+                                        <div className="text-slate-600 italic text-center py-12">Archive empty.</div>
                                     )}
-                                </tbody>
-                            </table>
+                                </div>
+                            ) : (
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-slate-900/30 border-b border-white/5 text-slate-500 text-[10px] uppercase tracking-[0.2em] sticky top-0 backdrop-blur-md z-10">
+                                            <th className="px-4 py-4 font-bold">Team</th>
+                                            <th className="px-4 py-4 font-bold">Action Item</th>
+                                            <th className="px-4 py-4 font-bold">Due By</th>
+                                            <th className="px-4 py-4 font-bold">Done</th>
+                                            <th className="px-4 py-4 font-bold">Submitted On</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {getModalTasks().map(task => (
+                                            <tr key={task.id} className="hover:bg-slate-800/50 transition-colors group">
+                                                <td className="px-4 py-4 text-sm font-bold text-blue-300">{task.assignee}</td>
+                                                <td className={`px-4 py-4 text-sm font-semibold ${task.status === 'Done' ? 'text-emerald-400' : 'text-slate-200'}`}>
+                                                    {task.action}
+                                                </td>
+                                                <td className="px-4 py-4 text-xs font-bold text-slate-400">
+                                                    {task.due_by_type}
+                                                    {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && <span className="text-red-500 ml-2">(Overdue)</span>}
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={task.status === 'Done'}
+                                                        onChange={(e) => updateTask(task.id, 'status', e.target.checked ? 'Done' : 'To Do')}
+                                                        className="w-5 h-5 rounded border-slate-600 accent-emerald-500 focus:ring-emerald-500 bg-slate-900 cursor-pointer"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-4 text-xs font-mono text-slate-500 flex justify-between items-center">
+                                                    {formatDate(task.submitted_on || task.created_at)}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {getModalTasks().length === 0 && (
+                                            <tr>
+                                                <td colSpan="5" className="px-4 py-12 text-center text-slate-600 italic">No tasks found matching this filter.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -720,6 +753,94 @@ function ContextDropdown({ contexts, value, onSelect, onAdd, onDelete }) {
                             <Plus className="w-4 h-4" /> CREATE NEW
                         </button>
                     )}
+                </div>
+            )}
+        </div>
+    );
+}
+
+// --- Due By Dropdown Component ---
+function DueByDropdown({ value, priority, onSelect }) {
+    const [isOpen, setIsOpen] = React.useState(false);
+    const ref = React.useRef(null);
+
+    React.useEffect(() => {
+        const handler = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    // Helper to get only the short priority code (P1, P2, P3, Backburner)
+    const getShortPriority = (p) => {
+        if (!p) return null;
+        if (p.includes('P1')) return 'P1';
+        if (p.includes('P2')) return 'P2';
+        if (p.includes('P3')) return 'P3';
+        return null;
+    };
+
+    const getPriorityColor = (p) => {
+        if (!p) return 'text-slate-400';
+        if (p.includes('P1')) return 'text-amber-500';
+        if (p.includes('P2')) return 'text-orange-500';
+        if (p.includes('P3')) return 'text-blue-500';
+        return 'text-slate-400';
+    };
+
+    const shortPriority = getShortPriority(priority);
+    const priorityColor = getPriorityColor(priority);
+
+    // Map specific due dates to their priority representation for the dropdown menu
+    const getOptionPriority = (opt) => {
+        if (['1 hr', '6 hrs', 'Today'].includes(opt)) return { text: 'P1', color: 'text-amber-500' };
+        if (['3 days', 'This Week'].includes(opt)) return { text: 'P2', color: 'text-orange-500' };
+        if (['This Month'].includes(opt)) return { text: 'P3', color: 'text-blue-500' };
+        return null; // Backburner or unrecognized
+    };
+
+    return (
+        <div className="relative inline-block" ref={ref}>
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 bg-slate-800/60 border border-slate-700 rounded-lg px-2 py-1.5 hover:bg-slate-700 transition-colors"
+            >
+                <span className="text-slate-300 text-xs font-bold">
+                    {value || "Due By..."}
+                </span>
+                {shortPriority && (
+                    <span className={`text-xs font-black ${priorityColor}`}>
+                        {shortPriority}
+                    </span>
+                )}
+                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : 'opacity-50'}`} />
+            </button>
+
+            {isOpen && (
+                <div className="absolute top-full left-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-[100] overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2 cursor-pointer">
+                    {DUE_BY_OPTIONS.map(opt => {
+                        const optPriority = getOptionPriority(opt);
+                        return (
+                            <div
+                                key={opt}
+                                onClick={() => { onSelect(opt); setIsOpen(false); }}
+                                className="flex items-center gap-2 px-4 py-3 hover:bg-slate-800 transition-colors text-left"
+                            >
+                                <span className={`text-sm font-semibold flex-1 ${value === opt ? 'text-white' : 'text-slate-400'}`}>
+                                    {opt}
+                                </span>
+                                {optPriority && (
+                                    <span className={`text-xs font-black ${optPriority.color}`}>
+                                        {optPriority.text}
+                                    </span>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             )}
         </div>
