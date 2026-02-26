@@ -356,12 +356,12 @@ export default function App() {
                 {/* View: Dashboard */}
                 {activeTab === 'dashboard' && (
                     <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
+                        <div className="flex w-full gap-2 md:gap-4 overflow-hidden">
                             <StatCard label="Critical (P1)" value={stats.p1} icon={Zap} color="text-red-500" bgColor="bg-red-500/10" valueColor="text-slate-400" onClick={() => setModalFilter('P1')} />
                             <StatCard label="Priority 2 (P2)" value={stats.p2} icon={Calendar} color="text-orange-500" bgColor="bg-orange-500/10" valueColor="text-slate-400" onClick={() => setModalFilter('P2')} />
                             <StatCard label="Priority 3 (P3)" value={stats.p3} icon={Calendar} color="text-yellow-500" bgColor="bg-yellow-500/10" valueColor="text-slate-400" onClick={() => setModalFilter('P3')} />
                             <StatCard label="Backburner" value={stats.backburner} icon={Coffee} color="text-slate-400" bgColor="bg-slate-400/10" onClick={() => setModalFilter('Backburner')} />
-                            <StatCard label="COMPLETED TASKS (7 days)" value={stats.completed} icon={CheckCircle2} color="text-emerald-500" bgColor="bg-emerald-500/10" onClick={() => setModalFilter('Completed')} />
+                            <StatCard label="COMPLETED (7d)" value={stats.completed} icon={CheckCircle2} color="text-emerald-500" bgColor="bg-emerald-500/10" onClick={() => setModalFilter('Completed')} />
                         </div>
 
                         {/* All Tasks Rolldown Toggle */}
@@ -572,21 +572,22 @@ export default function App() {
                             {modalFilter === 'Archive' ? (
                                 <div className="text-left w-full mx-auto pb-4">
                                     {getModalTasks().map(task => (
-                                        <div key={task.id} className="flex justify-between items-center py-4 border-b border-slate-800 last:border-0 group transition-colors hover:bg-slate-800/30 px-4 -mx-4 rounded-xl">
-                                            <div>
-                                                <div className="text-xs text-slate-500 font-bold mb-1">{task.assignee}</div>
-                                                <div className="text-sm text-slate-300">{task.action}</div>
+                                        <div key={task.id} className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0 group transition-colors hover:bg-slate-800/30 px-4 -mx-4 rounded-xl w-full overflow-hidden">
+                                            <div className="flex items-center flex-1 min-w-0 pr-8">
+                                                <span className="text-slate-500 text-sm font-bold shrink-0 w-20">{task.assignee}</span>
+                                                <span className="text-slate-300 text-sm font-bold truncate shrink">{task.action}</span>
                                             </div>
-                                            <div className="flex items-center gap-4">
-                                                <div className="text-xs text-slate-600">{formatDate(task.date || task.created_at)}</div>
-                                                <button
-                                                    onClick={() => { if (confirm("Are you sure you want to PERMANENTLY delete this archived item? This cannot be undone.")) permanentlyDeleteTask(task.id); }}
-                                                    className="opacity-0 group-hover:opacity-100 p-2 text-slate-600 hover:text-red-500 transition-all transform hover:scale-110"
-                                                    title="Permanently Delete"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                            <div className="flex items-center justify-end gap-12 shrink-0 text-slate-500 text-sm font-bold mr-4 w-[250px]">
+                                                <span className="truncate flex-1 text-right">{task.category || ' '}</span>
+                                                <span className="shrink-0 w-[100px] text-right">{formatDate(task.date || task.created_at)}</span>
                                             </div>
+                                            <button
+                                                onClick={() => { if (confirm("Are you sure you want to PERMANENTLY delete this archived item? This cannot be undone.")) permanentlyDeleteTask(task.id); }}
+                                                className="opacity-0 group-hover:opacity-100 p-2 text-slate-600 hover:text-red-500 transition-all transform hover:scale-110 shrink-0"
+                                                title="Permanently Delete"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
                                         </div>
                                     ))}
                                     {getModalTasks().length === 0 && (
@@ -599,6 +600,7 @@ export default function App() {
                                         <tr className="bg-slate-900/30 border-b border-white/5 text-slate-500 text-[10px] uppercase tracking-[0.2em] sticky top-0 backdrop-blur-md z-10">
                                             <th className="px-4 py-4 font-bold">Team</th>
                                             <th className="px-4 py-4 font-bold">Action Item</th>
+                                            <th className="px-4 py-4 font-bold">Context</th>
                                             <th className="px-4 py-4 font-bold">Due By</th>
                                             <th className="px-4 py-4 font-bold">Done</th>
                                             <th className="px-4 py-4 font-bold">Submitted On</th>
@@ -610,6 +612,13 @@ export default function App() {
                                                 <td className="px-4 py-4 text-sm font-bold text-blue-300">{task.assignee}</td>
                                                 <td className={`px-4 py-4 text-sm font-semibold ${task.status === 'Done' ? 'text-emerald-400' : 'text-slate-200'}`}>
                                                     {task.action}
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    {task.category && (
+                                                        <span className="text-[10px] font-black uppercase text-blue-400 tracking-wider bg-blue-900/20 px-2 py-1 rounded-md border border-blue-500/20 truncate max-w-[120px] inline-block">
+                                                            {task.category}
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-4 text-xs font-bold text-slate-400">
                                                     {task.due_by_type}
@@ -867,24 +876,32 @@ function StatCard({ label, value, icon: Icon, color, bgColor, valueColor, onClic
     return (
         <div
             onClick={onClick}
-            className={`glass p-8 rounded-[2rem] border border-transparent hover:border-slate-500/30 cursor-pointer transition-all group relative overflow-hidden`}
+            className={`flex-1 min-w-0 glass p-2 sm:p-4 md:p-6 rounded-xl md:rounded-[2rem] border border-transparent hover:border-slate-500/30 cursor-pointer transition-all group relative overflow-hidden flex flex-col justify-between`}
         >
-            <div className={`absolute -right-4 -bottom-4 opacity-[0.03] transition-transform group-hover:scale-110 group-hover:rotate-12`}>
-                <Icon className="w-32 h-32" />
+            <div className={`absolute -right-2 -bottom-2 md:-right-4 md:-bottom-4 opacity-[0.03] transition-transform group-hover:scale-110 group-hover:rotate-12 pointer-events-none`}>
+                <Icon className="w-12 h-12 sm:w-16 sm:h-16 md:w-24 md:h-24" />
             </div>
-            <div className="flex justify-between items-center mb-4 relative z-10">
-                <span className="text-slate-400 text-[10px] font-black uppercase tracking-[0.1em]">{label}</span>
-                <div className={`${bgColor} p-2.5 rounded-2xl`}>
-                    <Icon className={`w-5 h-5 ${color}`} />
+            <div className="flex justify-between items-start mb-1 md:mb-4 relative z-10 w-full">
+                <span className="text-slate-400 text-[6px] sm:text-[8px] md:text-[10px] font-black uppercase tracking-[0.05em] md:tracking-[0.1em] truncate block w-full pr-1 shrink leading-tight">{label}</span>
+                <div className={`${bgColor} p-1 md:p-2.5 rounded-lg md:rounded-2xl shrink-0 hidden lg:block`}>
+                    <Icon className={`w-3 h-3 md:w-5 md:h-5 ${color}`} />
                 </div>
             </div>
-            <div className={`text-5xl font-black tracking-tighter relative z-10 ${valueColor || color}`}>{value}</div>
+            <div className={`text-lg sm:text-2xl md:text-4xl lg:text-5xl font-black tracking-tighter relative z-10 truncate ${valueColor || color}`}>{value}</div>
         </div>
     );
 }
 
 // --- Responsive Task Components ---
 function TaskRow({ task, updateTask, contexts, addContext, deleteContext, deleteTask, showAssignee }) {
+    const textareaRef = React.useRef(null);
+
+    React.useEffect(() => {
+        if (task.action === '' && textareaRef.current) {
+            textareaRef.current.focus();
+        }
+    }, [task.action]);
+
     return (
         <tr className={`hover:bg-blue-600/[0.03] transition-colors group ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'bg-red-900/10' : ''}`}>
             <td className="px-6 py-4">
@@ -902,6 +919,7 @@ function TaskRow({ task, updateTask, contexts, addContext, deleteContext, delete
             </td>
             <td className="px-6 py-4 min-w-[250px] w-full max-w-sm">
                 <textarea
+                    ref={textareaRef}
                     value={task.action}
                     onChange={(e) => updateTask(task.id, 'action', e.target.value)}
                     className="bg-transparent border-none outline-none w-full font-bold text-sm text-slate-200 focus:text-blue-400 transition-colors placeholder:text-slate-800 resize-none overflow-hidden block"
@@ -955,6 +973,14 @@ function TaskRow({ task, updateTask, contexts, addContext, deleteContext, delete
 }
 
 function TaskCard({ task, updateTask, contexts, addContext, deleteContext, deleteTask, showAssignee }) {
+    const textareaRef = React.useRef(null);
+
+    React.useEffect(() => {
+        if (task.action === '' && textareaRef.current) {
+            textareaRef.current.focus();
+        }
+    }, [task.action]);
+
     return (
         <div className={`bg-slate-800/40 p-4 rounded-2xl border ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'border-red-900/50 bg-red-900/10' : 'border-slate-700/50'} flex flex-col gap-4 relative shadow-lg`}>
             {/* Top row: Status and Assignee */}
@@ -985,6 +1011,7 @@ function TaskCard({ task, updateTask, contexts, addContext, deleteContext, delet
 
             {/* Action Item Input */}
             <textarea
+                ref={textareaRef}
                 value={task.action}
                 onChange={(e) => updateTask(task.id, 'action', e.target.value)}
                 className="bg-transparent border-none outline-none w-full font-bold text-sm text-white focus:text-blue-400 transition-colors placeholder:text-slate-600 resize-none overflow-hidden block"

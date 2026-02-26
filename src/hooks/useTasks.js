@@ -169,7 +169,7 @@ export function useTasks() {
         const newTask = {
             id: Date.now(),
             status: 'To Do',
-            action: 'New action item...',
+            action: '',
             category: defaultContext,
             due_by_type: dueByType,
             priority: getPriorityFromDueByType(dueByType),
