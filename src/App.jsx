@@ -19,7 +19,8 @@ import {
     Coffee,
     CalendarDays,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Globe
 } from 'lucide-react';
 import { useTasks } from './hooks/useTasks';
 import { STATUS_OPTIONS, DUE_BY_OPTIONS } from './constants';
@@ -49,6 +50,8 @@ export default function App() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [modalFilter, setModalFilter] = useState(null); // 'P1', 'P2', 'P3', 'Completed', 'Overdue', 'Backburner'
     const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
+    const [showAllTasksBoard, setShowAllTasksBoard] = useState(false);
+    const [allTasksContextFilter, setAllTasksContextFilter] = useState('All');
 
     // Calendar Tasks Logic
     const calendarDays = React.useMemo(() => {
@@ -177,8 +180,8 @@ export default function App() {
                             <Activity className="w-5 h-5 text-blue-500" />
                             <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em]">System Active</span>
                         </div>
-                        <h1 className="text-5xl font-black tracking-tighter bg-gradient-to-r from-blue-400 via-indigo-400 to-blue-600 bg-clip-text text-transparent">
-                            ROOXTER ACTION ITEMS
+                        <h1 className="flex items-baseline gap-1 text-6xl font-black tracking-tighter bg-gradient-to-r from-blue-400 via-indigo-400 to-blue-600 bg-clip-text text-transparent">
+                            <span className="text-3xl">dis</span>TRAKKER
                         </h1>
                         <p className="text-slate-500 text-sm font-medium mt-2">Team workflow and production control center.</p>
                     </div>
@@ -352,12 +355,47 @@ export default function App() {
 
                 {/* View: Dashboard */}
                 {activeTab === 'dashboard' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        <StatCard label="Critical (P1)" value={stats.p1} icon={Zap} color="text-amber-400" bgColor="bg-amber-400/10" valueColor="text-slate-400" onClick={() => setModalFilter('P1')} />
-                        <StatCard label="Priority 2 (P2)" value={stats.p2} icon={Calendar} color="text-orange-400" bgColor="bg-orange-400/10" valueColor="text-slate-400" onClick={() => setModalFilter('P2')} />
-                        <StatCard label="Priority 3 (P3)" value={stats.p3} icon={Calendar} color="text-blue-400" bgColor="bg-blue-400/10" valueColor="text-slate-400" onClick={() => setModalFilter('P3')} />
-                        <StatCard label="Backburner" value={stats.backburner} icon={Coffee} color="text-slate-400" bgColor="bg-slate-400/10" onClick={() => setModalFilter('Backburner')} />
-                        <StatCard label="COMPLETED TASKS (7 days)" value={stats.completed} icon={CheckCircle2} color="text-emerald-400" bgColor="bg-emerald-400/10" onClick={() => setModalFilter('Completed')} />
+                    <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
+                            <StatCard label="Critical (P1)" value={stats.p1} icon={Zap} color="text-red-500" bgColor="bg-red-500/10" valueColor="text-slate-400" onClick={() => setModalFilter('P1')} />
+                            <StatCard label="Priority 2 (P2)" value={stats.p2} icon={Calendar} color="text-orange-500" bgColor="bg-orange-500/10" valueColor="text-slate-400" onClick={() => setModalFilter('P2')} />
+                            <StatCard label="Priority 3 (P3)" value={stats.p3} icon={Calendar} color="text-yellow-500" bgColor="bg-yellow-500/10" valueColor="text-slate-400" onClick={() => setModalFilter('P3')} />
+                            <StatCard label="Backburner" value={stats.backburner} icon={Coffee} color="text-slate-400" bgColor="bg-slate-400/10" onClick={() => setModalFilter('Backburner')} />
+                            <StatCard label="COMPLETED TASKS (7 days)" value={stats.completed} icon={CheckCircle2} color="text-emerald-500" bgColor="bg-emerald-500/10" onClick={() => setModalFilter('Completed')} />
+                        </div>
+
+                        {/* All Tasks Rolldown Toggle */}
+                        <button
+                            onClick={() => setShowAllTasksBoard(!showAllTasksBoard)}
+                            className="w-full glass py-4 rounded-[2rem] flex items-center justify-center gap-3 text-slate-300 font-bold hover:bg-slate-800/80 hover:text-white transition-all group mt-2 border border-slate-700/50 hover:border-blue-500/30 shadow-lg"
+                        >
+                            <span className="tracking-widest uppercase text-sm">
+                                {showAllTasksBoard ? '- Hide All Tasks' : '+ View All Tasks'}
+                            </span>
+                        </button>
+
+                        {/* All Tasks Rolldown Board */}
+                        {showAllTasksBoard && (
+                            <div className="glass p-8 rounded-[2.5rem] mt-2 animate-in slide-in-from-top-4 fade-in duration-500 border border-slate-700/50 shadow-2xl">
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-white/5 pb-6">
+                                    <div>
+                                        <h2 className="text-4xl font-black text-white uppercase tracking-tighter">Production Board</h2>
+                                    </div>
+                                    <div className="flex items-center gap-2 w-full md:w-auto">
+                                        <span className="text-slate-500 text-xs font-bold uppercase tracking-widest hidden md:inline-block">Filter Context:</span>
+                                        <select
+                                            value={allTasksContextFilter}
+                                            onChange={(e) => setAllTasksContextFilter(e.target.value)}
+                                            className="bg-slate-800/80 border border-slate-700 text-slate-300 text-xs font-bold rounded-xl px-4 py-2 outline-none cursor-pointer hover:bg-slate-700 transition-colors w-full md:w-auto shadow-inner"
+                                        >
+                                            <option value="All">All Contexts</option>
+                                            {contexts.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+                                <AllTasksBoard tasks={tasks} contextFilter={allTasksContextFilter} updateTask={updateTask} />
+                            </div>
+                        )}
 
                         <div className="col-span-full glass p-8 rounded-[2.5rem] mt-4">
                             <h3 className="text-xl font-bold mb-4">Active Team Roster</h3>
@@ -404,79 +442,55 @@ export default function App() {
 
                         <div className="glass rounded-[2.5rem] border border-white/5 min-h-[450px]">
                             <div className="overflow-visible no-scrollbar">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-slate-900/30 border-b border-white/5 text-slate-500 text-[10px] uppercase tracking-[0.2em]">
-                                            <th className="px-6 py-5 font-bold">Status</th>
-                                            <th className="px-6 py-5 font-bold">Action Item</th>
-                                            <th className="px-6 py-5 font-bold">Context</th>
-                                            <th className="px-6 py-5 font-bold">Due By</th>
-                                            <th className="px-6 py-5 font-bold text-center">Control</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/5">
-                                        {tasks
-                                            .filter(t => t.assignee === selectedMember && t.status !== 'Deleted' && t.status !== 'Done' && !t.is_archived)
-                                            .map(task => (
-                                                <tr key={task.id} className={`hover:bg-blue-600/[0.03] transition-colors group ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'bg-red-900/10' : ''}`}>
-                                                    <td className="px-6 py-4">
-                                                        <select
-                                                            value={task.status}
-                                                            onChange={(e) => updateTask(task.id, 'status', e.target.value)}
-                                                            className={`text-[10px] font-black uppercase px-3 py-1.5 rounded-full border border-opacity-30 bg-opacity-10 outline-none cursor-pointer transition-all ${task.status === 'Done' ? 'bg-emerald-500 text-emerald-400 border-emerald-500' :
-                                                                task.status === 'Blocked' ? 'bg-red-500 text-red-400 border-red-500' :
-                                                                    task.status === 'In Progress' ? 'bg-blue-500 text-blue-400 border-blue-500' :
-                                                                        'bg-slate-500 text-slate-400 border-slate-500'
-                                                                }`}
-                                                        >
-                                                            {STATUS_OPTIONS.filter(o => o.value !== 'Deleted').map(opt => <option key={opt.value} value={opt.value} className="bg-slate-900">{opt.label}</option>)}
-                                                        </select>
-                                                    </td>
-                                                    <td className="px-6 py-4 min-w-[250px]">
-                                                        <input
-                                                            value={task.action}
-                                                            onChange={(e) => updateTask(task.id, 'action', e.target.value)}
-                                                            className="bg-transparent border-none outline-none w-full font-bold text-sm text-slate-200 focus:text-blue-400 transition-colors placeholder:text-slate-800"
-                                                            placeholder="Task description..."
-                                                        />
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <ContextDropdown
-                                                            contexts={contexts}
-                                                            value={task.category || ''}
-                                                            onSelect={(name) => updateTask(task.id, 'category', name)}
-                                                            onAdd={addContext}
-                                                            onDelete={deleteContext}
-                                                        />
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center gap-2">
-                                                            <DueByDropdown
-                                                                value={task.due_by_type || ''}
-                                                                priority={task.priority}
-                                                                onSelect={(val) => updateTask(task.id, 'due_by_type', val)}
-                                                            />
-                                                            {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && (
-                                                                <span className="text-[10px] text-red-500 font-bold uppercase whitespace-nowrap">
-                                                                    Overdue!
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        <button
-                                                            onClick={() => deleteTask(task.id)}
-                                                            className="text-slate-800 hover:text-red-500 transition-all transform hover:scale-125 p-2"
-                                                            title="Delete (Move to Trash)"
-                                                        >
-                                                            <Trash2 className="w-5 h-5" />
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                    </tbody>
-                                </table>
-                                {tasks.filter(t => t.assignee === selectedMember && t.status !== 'Deleted' && !t.is_archived).length === 0 && (
+                                {/* Desktop Table */}
+                                <div className="hidden md:block">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="bg-slate-900/30 border-b border-white/5 text-slate-500 text-[10px] uppercase tracking-[0.2em]">
+                                                <th className="px-6 py-5 font-bold">Status</th>
+                                                <th className="px-6 py-5 font-bold">Action Item</th>
+                                                <th className="px-6 py-5 font-bold">Context</th>
+                                                <th className="px-6 py-5 font-bold">Due By</th>
+                                                <th className="px-6 py-5 font-bold text-center">Control</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                            {tasks
+                                                .filter(t => t.assignee === selectedMember && t.status !== 'Deleted' && t.status !== 'Done' && !t.is_archived)
+                                                .map(task => (
+                                                    <TaskRow
+                                                        key={task.id}
+                                                        task={task}
+                                                        updateTask={updateTask}
+                                                        contexts={contexts}
+                                                        addContext={addContext}
+                                                        deleteContext={deleteContext}
+                                                        deleteTask={deleteTask}
+                                                        showAssignee={false}
+                                                    />
+                                                ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Mobile Cards */}
+                                <div className="md:hidden flex flex-col gap-4 p-4">
+                                    {tasks
+                                        .filter(t => t.assignee === selectedMember && t.status !== 'Deleted' && t.status !== 'Done' && !t.is_archived)
+                                        .map(task => (
+                                            <TaskCard
+                                                key={task.id}
+                                                task={task}
+                                                updateTask={updateTask}
+                                                contexts={contexts}
+                                                addContext={addContext}
+                                                deleteContext={deleteContext}
+                                                deleteTask={deleteTask}
+                                                showAssignee={false}
+                                            />
+                                        ))}
+                                </div>
+                                {tasks.filter(t => t.assignee === selectedMember && t.status !== 'Deleted' && t.status !== 'Done' && !t.is_archived).length === 0 && (
                                     <div className="p-20 text-center text-slate-600 font-bold italic tracking-tighter text-2xl">
                                         SYSTEM CLEAR. NO ACTIVE ITEMS FOR {selectedMember?.toUpperCase()}.
                                     </div>
@@ -774,7 +788,8 @@ function DueByDropdown({ value, priority, onSelect }) {
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
-    // Helper to get only the short priority code (P1, P2, P3, Backburner)
+    // --- Helper Functions ---
+    // Helper to get only the short priority code
     const getShortPriority = (p) => {
         if (!p) return null;
         if (p.includes('P1')) return 'P1';
@@ -785,9 +800,9 @@ function DueByDropdown({ value, priority, onSelect }) {
 
     const getPriorityColor = (p) => {
         if (!p) return 'text-slate-400';
-        if (p.includes('P1')) return 'text-amber-500';
+        if (p.includes('P1')) return 'text-red-500';
         if (p.includes('P2')) return 'text-orange-500';
-        if (p.includes('P3')) return 'text-blue-500';
+        if (p.includes('P3')) return 'text-yellow-500';
         return 'text-slate-400';
     };
 
@@ -796,9 +811,9 @@ function DueByDropdown({ value, priority, onSelect }) {
 
     // Map specific due dates to their priority representation for the dropdown menu
     const getOptionPriority = (opt) => {
-        if (['1 hr', '6 hrs', 'Today'].includes(opt)) return { text: 'P1', color: 'text-amber-500' };
+        if (['1 hr', '6 hrs', 'Today'].includes(opt)) return { text: 'P1', color: 'text-red-500' };
         if (['3 days', 'This Week'].includes(opt)) return { text: 'P2', color: 'text-orange-500' };
-        if (['This Month'].includes(opt)) return { text: 'P3', color: 'text-blue-500' };
+        if (['This Month'].includes(opt)) return { text: 'P3', color: 'text-yellow-500' };
         return null; // Backburner or unrecognized
     };
 
@@ -864,6 +879,236 @@ function StatCard({ label, value, icon: Icon, color, bgColor, valueColor, onClic
                 </div>
             </div>
             <div className={`text-5xl font-black tracking-tighter relative z-10 ${valueColor || color}`}>{value}</div>
+        </div>
+    );
+}
+
+// --- Responsive Task Components ---
+function TaskRow({ task, updateTask, contexts, addContext, deleteContext, deleteTask, showAssignee }) {
+    return (
+        <tr className={`hover:bg-blue-600/[0.03] transition-colors group ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'bg-red-900/10' : ''}`}>
+            <td className="px-6 py-4">
+                <select
+                    value={task.status}
+                    onChange={(e) => updateTask(task.id, 'status', e.target.value)}
+                    className={`text-[10px] font-black uppercase px-3 py-1.5 rounded-full border border-opacity-30 bg-opacity-10 outline-none cursor-pointer transition-all ${task.status === 'Done' ? 'bg-emerald-500 text-emerald-400 border-emerald-500' :
+                        task.status === 'Blocked' ? 'bg-red-500 text-red-400 border-red-500' :
+                            task.status === 'In Progress' ? 'bg-blue-500 text-blue-400 border-blue-500' :
+                                'bg-slate-500 text-slate-400 border-slate-500'
+                        }`}
+                >
+                    {STATUS_OPTIONS.filter(o => o.value !== 'Deleted').map(opt => <option key={opt.value} value={opt.value} className="bg-slate-900">{opt.label}</option>)}
+                </select>
+            </td>
+            <td className="px-6 py-4 min-w-[250px] w-full max-w-sm">
+                <textarea
+                    value={task.action}
+                    onChange={(e) => updateTask(task.id, 'action', e.target.value)}
+                    className="bg-transparent border-none outline-none w-full font-bold text-sm text-slate-200 focus:text-blue-400 transition-colors placeholder:text-slate-800 resize-none overflow-hidden block"
+                    placeholder="Task description..."
+                    rows={1}
+                    onInput={(e) => {
+                        e.target.style.height = 'auto';
+                        e.target.style.height = e.target.scrollHeight + 'px';
+                    }}
+                />
+            </td>
+            {showAssignee && (
+                <td className="px-6 py-4 text-sm font-bold text-blue-300">
+                    {task.assignee}
+                </td>
+            )}
+            <td className="px-6 py-4">
+                <ContextDropdown
+                    contexts={contexts}
+                    value={task.category || ''}
+                    onSelect={(name) => updateTask(task.id, 'category', name)}
+                    onAdd={addContext}
+                    onDelete={deleteContext}
+                />
+            </td>
+            <td className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                    <DueByDropdown
+                        value={task.due_by_type || ''}
+                        priority={task.priority}
+                        onSelect={(val) => updateTask(task.id, 'due_by_type', val)}
+                    />
+                    {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && (
+                        <span className="text-[10px] text-red-500 font-bold uppercase whitespace-nowrap">
+                            Overdue!
+                        </span>
+                    )}
+                </div>
+            </td>
+            <td className="px-6 py-4 text-center">
+                <button
+                    onClick={() => deleteTask(task.id)}
+                    className="text-slate-800 hover:text-red-500 transition-all transform hover:scale-125 p-2"
+                    title="Delete (Move to Trash)"
+                >
+                    <Trash2 className="w-5 h-5" />
+                </button>
+            </td>
+        </tr>
+    );
+}
+
+function TaskCard({ task, updateTask, contexts, addContext, deleteContext, deleteTask, showAssignee }) {
+    return (
+        <div className={`bg-slate-800/40 p-4 rounded-2xl border ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'border-red-900/50 bg-red-900/10' : 'border-slate-700/50'} flex flex-col gap-4 relative shadow-lg`}>
+            {/* Top row: Status and Assignee */}
+            <div className="flex justify-between items-start gap-2">
+                <select
+                    value={task.status}
+                    onChange={(e) => updateTask(task.id, 'status', e.target.value)}
+                    className={`text-[9px] font-black uppercase px-2 py-1 rounded-md border border-opacity-30 bg-opacity-10 outline-none cursor-pointer transition-all w-fit ${task.status === 'Done' ? 'bg-emerald-500 text-emerald-400 border-emerald-500' :
+                        task.status === 'Blocked' ? 'bg-red-500 text-red-400 border-red-500' :
+                            task.status === 'In Progress' ? 'bg-blue-500 text-blue-400 border-blue-500' :
+                                'bg-slate-500 text-slate-400 border-slate-500'
+                        }`}
+                >
+                    {STATUS_OPTIONS.filter(o => o.value !== 'Deleted').map(opt => <option key={opt.value} value={opt.value} className="bg-slate-900">{opt.label}</option>)}
+                </select>
+
+                <div className="flex items-center gap-2">
+                    {showAssignee && (
+                        <span className="text-[10px] font-black uppercase text-blue-400 tracking-wider bg-blue-900/20 px-2 py-1 rounded-md border border-blue-500/20 truncate max-w-[150px]">
+                            {task.assignee}
+                        </span>
+                    )}
+                    <button onClick={() => deleteTask(task.id)} className="text-slate-500 hover:text-red-500 transition-colors p-1">
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                </div>
+            </div>
+
+            {/* Action Item Input */}
+            <textarea
+                value={task.action}
+                onChange={(e) => updateTask(task.id, 'action', e.target.value)}
+                className="bg-transparent border-none outline-none w-full font-bold text-sm text-white focus:text-blue-400 transition-colors placeholder:text-slate-600 resize-none overflow-hidden block"
+                placeholder="Task description..."
+                rows={1}
+                onInput={(e) => {
+                    e.target.style.height = 'auto';
+                    e.target.style.height = e.target.scrollHeight + 'px';
+                }}
+            />
+
+            {/* Bottom row: Context and Due By */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-700/50">
+                <ContextDropdown
+                    contexts={contexts}
+                    value={task.category || ''}
+                    onSelect={(name) => updateTask(task.id, 'category', name)}
+                    onAdd={addContext}
+                    onDelete={deleteContext}
+                />
+
+                <div className="flex items-center gap-2">
+                    <DueByDropdown
+                        value={task.due_by_type || ''}
+                        priority={task.priority}
+                        onSelect={(val) => updateTask(task.id, 'due_by_type', val)}
+                    />
+                    {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && (
+                        <span className="text-[9px] text-red-500 font-bold uppercase whitespace-nowrap">Overdue!</span>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// --- All Tasks Rolldown Board Component ---
+function AllTasksBoard({ tasks, contextFilter, updateTask }) {
+    // Helper to filter tasks by priority/status and currently selected context
+    const getTasksByBucket = (bucketName) => {
+        let bucketTasks = [];
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        switch (bucketName) {
+            case 'P1':
+                bucketTasks = tasks.filter(t => t.priority && t.priority.includes('P1') && t.status !== 'Done' && t.status !== 'Deleted' && !t.is_archived);
+                break;
+            case 'P2':
+                bucketTasks = tasks.filter(t => t.priority && t.priority.includes('P2') && t.status !== 'Done' && t.status !== 'Deleted' && !t.is_archived);
+                break;
+            case 'P3':
+                bucketTasks = tasks.filter(t => t.priority && t.priority.includes('P3') && t.status !== 'Done' && t.status !== 'Deleted' && !t.is_archived);
+                break;
+            case 'Backburner':
+                bucketTasks = tasks.filter(t => t.priority === 'Backburner' && t.status !== 'Done' && t.status !== 'Deleted' && !t.is_archived);
+                break;
+            case 'Completed':
+                bucketTasks = tasks.filter(t => {
+                    if (t.status !== 'Done') return false;
+                    const compDate = t.deletion_date || t.submitted_on || t.created_at || t.date;
+                    return new Date(compDate) >= sevenDaysAgo;
+                });
+                break;
+            default:
+                break;
+        }
+
+        // Apply context filter if not 'All'
+        if (contextFilter !== 'All') {
+            bucketTasks = bucketTasks.filter(t => t.category === contextFilter);
+        }
+
+        return bucketTasks;
+    };
+
+    const columns = [
+        { id: 'P1', title: 'P1 (Critical)', colorClass: 'text-red-500', bgClass: 'bg-red-500/10', borderClass: 'border-red-500/20' },
+        { id: 'P2', title: 'P2 (High)', colorClass: 'text-orange-500', bgClass: 'bg-orange-500/10', borderClass: 'border-orange-500/20' },
+        { id: 'P3', title: 'P3 (Normal)', colorClass: 'text-yellow-500', bgClass: 'bg-yellow-500/10', borderClass: 'border-yellow-500/20' },
+        { id: 'Backburner', title: 'Backburner', colorClass: 'text-slate-400', bgClass: 'bg-slate-500/10', borderClass: 'border-slate-500/20' },
+        { id: 'Completed', title: 'Done (7 Days)', colorClass: 'text-emerald-500', bgClass: 'bg-emerald-500/10', borderClass: 'border-emerald-500/20' },
+    ];
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {columns.map(col => {
+                const colTasks = getTasksByBucket(col.id);
+                return (
+                    <div key={col.id} className={`flex flex-col h-full bg-slate-900/40 rounded-2xl border ${col.borderClass} overflow-hidden`}>
+                        {/* Column Header */}
+                        <div className={`${col.bgClass} p-3 border-b ${col.borderClass} flex justify-between items-center`}>
+                            <h3 className={`text-xs font-black uppercase tracking-wider ${col.colorClass}`}>{col.title}</h3>
+                            <span className={`text-[10px] font-bold ${col.colorClass} opacity-70`}>{colTasks.length}</span>
+                        </div>
+
+                        {/* Task List */}
+                        <div className="flex-1 p-2 flex flex-col gap-2 overflow-y-auto max-h-[500px] no-scrollbar">
+                            {colTasks.length === 0 ? (
+                                <div className="text-center py-8 text-slate-600 italic text-xs">Clear</div>
+                            ) : (
+                                colTasks.map(task => (
+                                    <div key={task.id} className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 hover:border-slate-500/50 transition-colors group flex items-start gap-3">
+                                        <button
+                                            onClick={() => updateTask(task.id, 'status', task.status === 'Done' ? 'In Progress' : 'Done')}
+                                            className={`shrink-0 w-5 h-5 mt-0.5 rounded-full border-2 flex items-center justify-center transition-colors ${task.status === 'Done' ? 'bg-emerald-500 border-emerald-500' : 'border-slate-500 hover:border-blue-400'}`}
+                                        >
+                                            {task.status === 'Done' && <CheckCircle2 className="w-3 h-3 text-slate-900" />}
+                                        </button>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-[10px] font-black uppercase text-blue-400 tracking-wider mb-1 truncate">
+                                                {task.assignee}
+                                            </div>
+                                            <div className={`text-sm font-medium leading-tight ${task.status === 'Done' ? 'text-slate-500 line-through' : 'text-slate-200'}`}>
+                                                {task.action}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                );
+            })}
         </div>
     );
 }
