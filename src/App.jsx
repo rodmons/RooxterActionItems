@@ -52,6 +52,7 @@ export default function App() {
     const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
     const [showAllTasksBoard, setShowAllTasksBoard] = useState(false);
     const [allTasksCategoryFilter, setAllTasksCategoryFilter] = useState('All');
+    const [selectedCalendarTask, setSelectedCalendarTask] = useState(null);
 
     // Calendar Tasks Logic
     const calendarDays = React.useMemo(() => {
@@ -271,84 +272,85 @@ export default function App() {
 
                 {/* View: Calendar */}
                 {activeTab === 'calendar' && (
-                    <div className="glass p-8 rounded-[3rem] animate-in fade-in duration-700">
-                        <div className="flex items-center gap-4 mb-8">
-                            <CalendarDays className="w-8 h-8 text-blue-400" />
-                            <div className="flex items-center gap-4">
+                    <div className="glass p-4 md:p-8 rounded-[3rem] animate-in fade-in duration-700">
+                        <div className="flex items-center gap-4 mb-4 md:mb-8">
+                            <CalendarDays className="w-6 h-6 md:w-8 md:h-8 text-blue-400" />
+                            <div className="flex items-center gap-2 md:gap-4">
                                 <button
                                     onClick={() => setCurrentMonthDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))}
                                     className="p-1 hover:bg-slate-800 rounded-lg transition-colors"
                                 >
-                                    <ChevronLeft className="w-8 h-8 text-blue-500" />
+                                    <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 text-blue-500" />
                                 </button>
-                                <h2 className="text-3xl font-black tracking-tight uppercase min-w-[180px] text-center">
+                                <h2 className="text-xl md:text-3xl font-black tracking-tight uppercase min-w-[140px] md:min-w-[180px] text-center">
                                     {currentMonthDate.toLocaleString('default', { month: 'short' })} {currentMonthDate.getFullYear()}
                                 </h2>
                                 <button
                                     onClick={() => setCurrentMonthDate(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))}
                                     className="p-1 hover:bg-slate-800 rounded-lg transition-colors"
                                 >
-                                    <ChevronRight className="w-8 h-8 text-blue-500" />
+                                    <ChevronRight className="w-6 h-6 md:w-8 md:h-8 text-blue-500" />
                                 </button>
                             </div>
                         </div>
 
                         {/* Month Grid */}
-                        <div className="grid grid-cols-7 gap-2">
-                            {/* Headers */}
-                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                                <div key={day} className="text-center text-xs font-black uppercase text-slate-500 py-2 border-b border-slate-700">
-                                    {day}
-                                </div>
-                            ))}
+                        <div className="w-full">
+                            <div className="grid grid-cols-7 gap-1 md:gap-2">
+                                {/* Headers */}
+                                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                                    <div key={day} className="text-center text-[10px] md:text-xs font-black uppercase text-slate-500 py-1 md:py-2 border-b border-slate-700">
+                                        <span className="md:hidden">{day.substring(0, 1)}</span>
+                                        <span className="hidden md:inline">{day}</span>
+                                    </div>
+                                ))}
 
-                            {/* Generate current month cells */}
-                            {(() => {
-                                const firstDay = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), 1);
-                                const offset = firstDay.getDay();
-                                const daysInMonth = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 0).getDate();
-                                const totalCells = Math.ceil((offset + daysInMonth) / 7) * 7;
+                                {/* Generate current month cells */}
+                                {(() => {
+                                    const firstDay = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), 1);
+                                    const offset = firstDay.getDay();
+                                    const daysInMonth = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 0).getDate();
+                                    const totalCells = Math.ceil((offset + daysInMonth) / 7) * 7;
 
-                                return Array.from({ length: totalCells }).map((_, i) => {
-                                    const dateCount = i - offset + 1;
-                                    const isCurrentMonth = dateCount > 0 && dateCount <= daysInMonth;
+                                    return Array.from({ length: totalCells }).map((_, i) => {
+                                        const dateCount = i - offset + 1;
+                                        const isCurrentMonth = dateCount > 0 && dateCount <= daysInMonth;
 
-                                    if (!isCurrentMonth) {
-                                        return <div key={i} className="h-40 p-2 border border-transparent rounded-xl flex flex-col bg-transparent"></div>;
-                                    }
+                                        if (!isCurrentMonth) {
+                                            return <div key={i} className="min-h-[60px] md:min-h-[120px] p-1 md:p-2 border border-transparent rounded-lg md:rounded-xl flex flex-col bg-transparent"></div>;
+                                        }
 
-                                    const cellDate = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), dateCount);
-                                    const dateStr = cellDate.toLocaleDateString('en-US');
-                                    const dayTasks = calendarDays[dateStr] ? calendarDays[dateStr] : [];
+                                        const cellDate = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), dateCount);
+                                        const dateStr = cellDate.toLocaleDateString('en-US');
+                                        const dayTasks = calendarDays[dateStr] ? calendarDays[dateStr] : [];
 
-                                    const isToday = cellDate.toDateString() === new Date().toDateString();
+                                        const isToday = cellDate.toDateString() === new Date().toDateString();
 
-                                    return (
-                                        <div key={i} className="h-40 p-2 border border-slate-800/50 rounded-xl flex flex-col bg-slate-900/30">
-                                            <div className="flex justify-start mb-2 shrink-0">
-                                                <div className={`w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold ${isToday ? 'bg-blue-400/20 border border-blue-500 text-blue-400' : 'text-slate-400'}`}>
+                                        return (
+                                            <div key={i} className="min-h-[60px] md:min-h-[120px] h-[60px] md:h-[120px] relative pt-5 md:pt-6 px-1 pb-1 md:px-2 md:pb-2 border border-slate-800/50 rounded-lg md:rounded-xl flex flex-col bg-slate-900/30 overflow-hidden">
+                                                <div className={`absolute top-1 left-1 w-4 h-4 md:w-5 md:h-5 flex items-center justify-center rounded-sm text-[8px] md:text-[10px] font-bold ${isToday ? 'bg-blue-400/20 text-blue-400' : 'text-slate-500'}`}>
                                                     {dateCount}
                                                 </div>
+                                                <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar">
+                                                    {dayTasks.map(task => (
+                                                        <div
+                                                            key={task.id}
+                                                            onClick={(e) => { e.stopPropagation(); setSelectedCalendarTask(task); }}
+                                                            className={`shrink-0 text-[8px] md:text-xs leading-tight md:leading-[1.2] truncate px-1 py-0.5 md:px-2 md:py-1 md:font-semibold rounded-sm md:rounded-md mb-[2px] md:mb-1 border bg-slate-800/80 transition-all hover:scale-[1.02] cursor-pointer
+                                                                ${task.priority?.includes('P1') ? 'border-amber-500/50 text-amber-200' :
+                                                                    task.priority?.includes('P2') ? 'border-orange-500/50 text-orange-200' :
+                                                                        'border-blue-500/50 text-blue-200'}`}
+                                                            title={task.action}
+                                                        >
+                                                            {task.action}
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
-                                            <div className="flex-1 flex flex-col gap-1 overflow-y-auto no-scrollbar">
-                                                {dayTasks.map(task => (
-                                                    <div
-                                                        key={task.id}
-                                                        className={`text-[10px] p-1.5 rounded border bg-slate-800/80 transition-all hover:scale-[1.02] cursor-default
-                                                            ${task.priority?.includes('P1') ? 'border-amber-500/50 text-amber-200' :
-                                                                task.priority?.includes('P2') ? 'border-orange-500/50 text-orange-200' :
-                                                                    'border-blue-500/50 text-blue-200'}`}
-                                                    >
-                                                        <div className="font-black truncate">{task.assignee}</div>
-                                                        <div className="truncate opacity-80">{task.action}</div>
-                                                        <div className="text-[8px] uppercase mt-0.5 opacity-60 font-mono tracking-wider">{task.due_by_type}</div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    );
-                                });
-                            })()}
+                                        );
+                                    });
+                                })()}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -646,6 +648,41 @@ export default function App() {
                                 </table>
                             )}
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* CALENDAR TASK POPUP MODAL */}
+            {selectedCalendarTask && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedCalendarTask(null)}></div>
+                    <div className="relative w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200">
+                        <button
+                            onClick={() => setSelectedCalendarTask(null)}
+                            className="absolute -top-12 right-0 p-2 bg-slate-800/50 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors z-[70]"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                        {/* We use the exact same TaskCard component that powers the Team Member mobile view */}
+                        {(() => {
+                            // Find the live task from state to ensure it updates when edited
+                            const liveTask = tasks.find(t => t.id === selectedCalendarTask.id);
+                            if (!liveTask) return null;
+                            return (
+                                <TaskCard
+                                    task={liveTask}
+                                    updateTask={updateTask}
+                                    categories={categories}
+                                    addCategory={addCategory}
+                                    deleteCategory={deleteCategory}
+                                    deleteTask={(id) => {
+                                        deleteTask(id);
+                                        setSelectedCalendarTask(null);
+                                    }}
+                                    showAssignee={true}
+                                />
+                            );
+                        })()}
                     </div>
                 </div>
             )}
