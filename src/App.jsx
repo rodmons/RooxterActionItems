@@ -20,7 +20,8 @@ import {
     CalendarDays,
     ChevronLeft,
     ChevronRight,
-    Globe
+    Globe,
+    List
 } from 'lucide-react';
 import { useTasks } from './hooks/useTasks';
 import { STATUS_OPTIONS, DUE_BY_OPTIONS } from './constants';
@@ -53,6 +54,7 @@ export default function App() {
     const [showAllTasksBoard, setShowAllTasksBoard] = useState(false);
     const [allTasksCategoryFilter, setAllTasksCategoryFilter] = useState('All');
     const [selectedCalendarTask, setSelectedCalendarTask] = useState(null);
+    const [calendarMode, setCalendarMode] = useState('week'); // 'month' or 'week'
 
     // Calendar Tasks Logic
     const calendarDays = React.useMemo(() => {
@@ -273,23 +275,40 @@ export default function App() {
                 {/* View: Calendar */}
                 {activeTab === 'calendar' && (
                     <div className="glass p-4 md:p-8 rounded-[3rem] animate-in fade-in duration-700">
-                        <div className="flex items-center gap-4 mb-4 md:mb-8">
-                            <CalendarDays className="w-6 h-6 md:w-8 md:h-8 text-blue-400" />
-                            <div className="flex items-center gap-2 md:gap-4">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4 md:mb-8 border-b border-slate-800/50 pb-6 relative z-10">
+                            <div className="flex items-center gap-4">
+                                <CalendarDays className="w-6 h-6 md:w-8 md:h-8 text-blue-400" />
+                                <div className="flex items-center gap-2 md:gap-4">
+                                    <button
+                                        onClick={() => setCurrentMonthDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))}
+                                        className="p-1 hover:bg-slate-800 rounded-lg transition-colors"
+                                    >
+                                        <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 text-blue-500" />
+                                    </button>
+                                    <h2 className="text-xl md:text-3xl font-black tracking-tight uppercase min-w-[140px] md:min-w-[180px] text-center">
+                                        {currentMonthDate.toLocaleString('default', { month: 'short' })} {currentMonthDate.getFullYear()}
+                                    </h2>
+                                    <button
+                                        onClick={() => setCurrentMonthDate(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))}
+                                        className="p-1 hover:bg-slate-800 rounded-lg transition-colors"
+                                    >
+                                        <ChevronRight className="w-6 h-6 md:w-8 md:h-8 text-blue-500" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center bg-slate-900/50 rounded-xl border border-slate-700 p-1">
                                 <button
-                                    onClick={() => setCurrentMonthDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))}
-                                    className="p-1 hover:bg-slate-800 rounded-lg transition-colors"
+                                    onClick={() => setCalendarMode('month')}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${calendarMode === 'month' ? 'bg-slate-700 text-white shadow-md' : 'text-slate-500 hover:text-slate-300'}`}
                                 >
-                                    <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 text-blue-500" />
+                                    <CalendarDays className="w-4 h-4" /> Grid
                                 </button>
-                                <h2 className="text-xl md:text-3xl font-black tracking-tight uppercase min-w-[140px] md:min-w-[180px] text-center">
-                                    {currentMonthDate.toLocaleString('default', { month: 'short' })} {currentMonthDate.getFullYear()}
-                                </h2>
                                 <button
-                                    onClick={() => setCurrentMonthDate(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))}
-                                    className="p-1 hover:bg-slate-800 rounded-lg transition-colors"
+                                    onClick={() => setCalendarMode('week')}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${calendarMode === 'week' ? 'bg-slate-700 text-white shadow-md' : 'text-slate-500 hover:text-slate-300'}`}
                                 >
-                                    <ChevronRight className="w-6 h-6 md:w-8 md:h-8 text-blue-500" />
+                                    <List className="w-4 h-4" /> Flow
                                 </button>
                             </div>
                         </div>
@@ -305,50 +324,124 @@ export default function App() {
                                     </div>
                                 ))}
 
-                                {/* Generate current month cells */}
+                                {/* Generate current month cells based on mode */}
                                 {(() => {
                                     const firstDay = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), 1);
                                     const offset = firstDay.getDay();
                                     const daysInMonth = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 0).getDate();
                                     const totalCells = Math.ceil((offset + daysInMonth) / 7) * 7;
 
-                                    return Array.from({ length: totalCells }).map((_, i) => {
-                                        const dateCount = i - offset + 1;
-                                        const isCurrentMonth = dateCount > 0 && dateCount <= daysInMonth;
+                                    if (calendarMode === 'week') {
+                                        // WEEK / FLOW LAYOUT
+                                        const weeks = [];
+                                        for (let i = 0; i < totalCells; i += 7) {
+                                            const weekCells = Array.from({ length: 7 }).map((_, j) => i + j);
 
-                                        if (!isCurrentMonth) {
-                                            return <div key={i} className="min-h-[60px] md:min-h-[120px] p-1 md:p-2 border border-transparent rounded-lg md:rounded-xl flex flex-col bg-transparent"></div>;
+                                            // Check if this week has any tasks
+                                            const hasTasks = weekCells.some(cellIdx => {
+                                                const dateCount = cellIdx - offset + 1;
+                                                const isCurrentMonth = dateCount > 0 && dateCount <= daysInMonth;
+                                                if (!isCurrentMonth) return false;
+
+                                                const cellDate = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), dateCount);
+                                                const dateStr = cellDate.toLocaleDateString('en-US');
+                                                return calendarDays[dateStr] && calendarDays[dateStr].length > 0;
+                                            });
+
+                                            if (hasTasks) {
+                                                weeks.push(weekCells);
+                                            }
                                         }
 
-                                        const cellDate = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), dateCount);
-                                        const dateStr = cellDate.toLocaleDateString('en-US');
-                                        const dayTasks = calendarDays[dateStr] ? calendarDays[dateStr] : [];
-
-                                        const isToday = cellDate.toDateString() === new Date().toDateString();
-
-                                        return (
-                                            <div key={i} className="min-h-[60px] md:min-h-[120px] h-[60px] md:h-[120px] relative pt-5 md:pt-6 px-1 pb-1 md:px-2 md:pb-2 border border-slate-800/50 rounded-lg md:rounded-xl flex flex-col bg-slate-900/30 overflow-hidden">
-                                                <div className={`absolute top-1 left-1 w-4 h-4 md:w-5 md:h-5 flex items-center justify-center rounded-sm text-[8px] md:text-[10px] font-bold ${isToday ? 'bg-blue-400/20 text-blue-400' : 'text-slate-500'}`}>
-                                                    {dateCount}
+                                        if (weeks.length === 0) {
+                                            return (
+                                                <div className="col-span-7 flex flex-col items-center justify-center py-20 text-slate-500">
+                                                    <CalendarDays className="w-12 h-12 mb-4 opacity-20" />
+                                                    <p className="italic">No tasks scheduled for this month.</p>
                                                 </div>
-                                                <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar">
-                                                    {dayTasks.map(task => (
-                                                        <div
-                                                            key={task.id}
-                                                            onClick={(e) => { e.stopPropagation(); setSelectedCalendarTask(task); }}
-                                                            className={`shrink-0 text-[8px] md:text-xs leading-tight md:leading-[1.2] truncate px-1 py-0.5 md:px-2 md:py-1 md:font-semibold rounded-sm md:rounded-md mb-[2px] md:mb-1 border bg-slate-800/80 transition-all hover:scale-[1.02] cursor-pointer
-                                                                ${task.priority?.includes('P1') ? 'border-amber-500/50 text-amber-200' :
-                                                                    task.priority?.includes('P2') ? 'border-orange-500/50 text-orange-200' :
-                                                                        'border-blue-500/50 text-blue-200'}`}
-                                                            title={task.action}
-                                                        >
-                                                            {task.action}
+                                            );
+                                        }
+
+                                        return weeks.map((week, weekIdx) => (
+                                            <React.Fragment key={weekIdx}>
+                                                {week.map((cellIdx) => {
+                                                    const dateCount = cellIdx - offset + 1;
+                                                    const isCurrentMonth = dateCount > 0 && dateCount <= daysInMonth;
+
+                                                    if (!isCurrentMonth) {
+                                                        return <div key={cellIdx} className="p-1 md:p-2 border border-transparent flex flex-col bg-transparent min-h-[100px] border-b border-slate-800/30"></div>;
+                                                    }
+
+                                                    const cellDate = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), dateCount);
+                                                    const dateStr = cellDate.toLocaleDateString('en-US');
+                                                    const dayTasks = calendarDays[dateStr] ? calendarDays[dateStr] : [];
+                                                    const isToday = cellDate.toDateString() === new Date().toDateString();
+
+                                                    return (
+                                                        <div key={cellIdx} className="relative pt-6 px-1 pb-4 md:px-2 md:pb-6 border-b border-slate-800/30 flex flex-col bg-transparent group overflow-visible transition-colors hover:bg-slate-800/20 min-h-[100px]">
+                                                            <div className={`absolute top-2 left-2 w-5 h-5 md:w-6 md:h-6 flex items-center justify-center rounded-full text-xs md:text-sm font-black ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50' : 'text-slate-300 group-hover:text-blue-400'}`}>
+                                                                {dateCount}
+                                                            </div>
+                                                            <div className="flex-1 flex flex-col mt-2">
+                                                                {dayTasks.map(task => (
+                                                                    <div
+                                                                        key={task.id}
+                                                                        onClick={(e) => { e.stopPropagation(); setSelectedCalendarTask(task); }}
+                                                                        className={`shrink-0 text-[10px] md:text-xs leading-tight md:leading-[1.2] px-1.5 py-1 md:px-2 md:py-1.5 md:font-semibold rounded-md mb-1.5 border bg-slate-900 shadow-sm transition-all hover:scale-[1.02] cursor-pointer
+                                                                            ${task.priority?.includes('P1') ? 'border-amber-500/30 text-amber-200 hover:border-amber-500' :
+                                                                                task.priority?.includes('P2') ? 'border-orange-500/30 text-orange-200 hover:border-orange-500' :
+                                                                                    'border-blue-500/30 text-blue-200 hover:border-blue-500'}`}
+                                                                        title={task.action}
+                                                                    >
+                                                                        <div className="truncate">{task.action}</div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
                                                         </div>
-                                                    ))}
+                                                    );
+                                                })}
+                                            </React.Fragment>
+                                        ));
+                                    } else {
+                                        // GRID / MONTH LAYOUT
+                                        return Array.from({ length: totalCells }).map((_, i) => {
+                                            const dateCount = i - offset + 1;
+                                            const isCurrentMonth = dateCount > 0 && dateCount <= daysInMonth;
+
+                                            if (!isCurrentMonth) {
+                                                return <div key={i} className="min-h-[60px] md:min-h-[120px] p-1 md:p-2 border border-transparent rounded-lg md:rounded-xl flex flex-col bg-transparent"></div>;
+                                            }
+
+                                            const cellDate = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), dateCount);
+                                            const dateStr = cellDate.toLocaleDateString('en-US');
+                                            const dayTasks = calendarDays[dateStr] ? calendarDays[dateStr] : [];
+
+                                            const isToday = cellDate.toDateString() === new Date().toDateString();
+
+                                            return (
+                                                <div key={i} className="min-h-[60px] md:min-h-[120px] h-[60px] md:h-[120px] relative pt-5 md:pt-6 px-1 pb-1 md:px-2 md:pb-2 border border-slate-800/50 rounded-lg md:rounded-xl flex flex-col bg-slate-900/30 overflow-hidden">
+                                                    <div className={`absolute top-1 left-1 w-4 h-4 md:w-5 md:h-5 flex items-center justify-center rounded-sm text-[8px] md:text-[10px] font-bold ${isToday ? 'bg-blue-400/20 text-blue-400' : 'text-slate-500'}`}>
+                                                        {dateCount}
+                                                    </div>
+                                                    <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar">
+                                                        {dayTasks.map(task => (
+                                                            <div
+                                                                key={task.id}
+                                                                onClick={(e) => { e.stopPropagation(); setSelectedCalendarTask(task); }}
+                                                                className={`shrink-0 text-[8px] md:text-xs leading-tight md:leading-[1.2] truncate px-1 py-0.5 md:px-2 md:py-1 md:font-semibold rounded-sm md:rounded-md mb-[2px] md:mb-1 border bg-slate-800/80 transition-all hover:scale-[1.02] cursor-pointer
+                                                                    ${task.priority?.includes('P1') ? 'border-amber-500/50 text-amber-200' :
+                                                                        task.priority?.includes('P2') ? 'border-orange-500/50 text-orange-200' :
+                                                                            'border-blue-500/50 text-blue-200'}`}
+                                                                title={task.action}
+                                                            >
+                                                                {task.action}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    });
+                                            );
+                                        });
+                                    }
                                 })()}
                             </div>
                         </div>
