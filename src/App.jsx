@@ -30,14 +30,14 @@ export default function App() {
     const {
         tasks,
         teamMembers,
-        contexts,
+        categories,
         stats,
         addTask,
         addTeamMember,
         deleteTeamMember,
         updateTeamMember,
-        addContext,
-        deleteContext,
+        addCategory,
+        deleteCategory,
         updateTask,
         deleteTask,
         permanentlyDeleteTask,
@@ -51,7 +51,7 @@ export default function App() {
     const [modalFilter, setModalFilter] = useState(null); // 'P1', 'P2', 'P3', 'Completed', 'Overdue', 'Backburner'
     const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
     const [showAllTasksBoard, setShowAllTasksBoard] = useState(false);
-    const [allTasksContextFilter, setAllTasksContextFilter] = useState('All');
+    const [allTasksCategoryFilter, setAllTasksCategoryFilter] = useState('All');
 
     // Calendar Tasks Logic
     const calendarDays = React.useMemo(() => {
@@ -129,7 +129,7 @@ export default function App() {
         }
     };
 
-    // Context changes are now handled inside the ContextDropdown component
+    // Category changes are now handled inside the CategoryDropdown component
 
     // Filter tasks for Modals
     const getModalTasks = () => {
@@ -181,7 +181,7 @@ export default function App() {
                             <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em]">System Active</span>
                         </div>
                         <h1 className="flex items-baseline gap-1 text-6xl font-black tracking-tighter bg-gradient-to-r from-blue-400 via-indigo-400 to-blue-600 bg-clip-text text-transparent">
-                            <span className="text-3xl">dis</span>TRAKKER
+                            taskker.io
                         </h1>
                         <p className="text-slate-500 text-sm font-medium mt-2">Team workflow and production control center.</p>
                     </div>
@@ -382,18 +382,18 @@ export default function App() {
                                         <h2 className="text-4xl font-black text-white uppercase tracking-tighter">Production Board</h2>
                                     </div>
                                     <div className="flex items-center gap-2 w-full md:w-auto">
-                                        <span className="text-slate-500 text-xs font-bold uppercase tracking-widest hidden md:inline-block">Filter Context:</span>
+                                        <span className="text-slate-500 text-xs font-bold uppercase tracking-widest hidden md:inline-block">Filter Category:</span>
                                         <select
-                                            value={allTasksContextFilter}
-                                            onChange={(e) => setAllTasksContextFilter(e.target.value)}
+                                            value={allTasksCategoryFilter}
+                                            onChange={(e) => setAllTasksCategoryFilter(e.target.value)}
                                             className="bg-slate-800/80 border border-slate-700 text-slate-300 text-xs font-bold rounded-xl px-4 py-2 outline-none cursor-pointer hover:bg-slate-700 transition-colors w-full md:w-auto shadow-inner"
                                         >
-                                            <option value="All">All Contexts</option>
-                                            {contexts.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                            <option value="All">All Categories</option>
+                                            {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                                         </select>
                                     </div>
                                 </div>
-                                <AllTasksBoard tasks={tasks} contextFilter={allTasksContextFilter} updateTask={updateTask} />
+                                <AllTasksBoard tasks={tasks} categoryFilter={allTasksCategoryFilter} updateTask={updateTask} categories={categories} addCategory={addCategory} deleteCategory={deleteCategory} />
                             </div>
                         )}
 
@@ -449,7 +449,7 @@ export default function App() {
                                             <tr className="bg-slate-900/30 border-b border-white/5 text-slate-500 text-[10px] uppercase tracking-[0.2em]">
                                                 <th className="px-6 py-5 font-bold">Status</th>
                                                 <th className="px-6 py-5 font-bold">Action Item</th>
-                                                <th className="px-6 py-5 font-bold">Context</th>
+                                                <th className="px-6 py-5 font-bold">Category</th>
                                                 <th className="px-6 py-5 font-bold">Due By</th>
                                                 <th className="px-6 py-5 font-bold text-center">Control</th>
                                             </tr>
@@ -462,9 +462,9 @@ export default function App() {
                                                         key={task.id}
                                                         task={task}
                                                         updateTask={updateTask}
-                                                        contexts={contexts}
-                                                        addContext={addContext}
-                                                        deleteContext={deleteContext}
+                                                        categories={categories}
+                                                        addCategory={addCategory}
+                                                        deleteCategory={deleteCategory}
                                                         deleteTask={deleteTask}
                                                         showAssignee={false}
                                                     />
@@ -482,9 +482,9 @@ export default function App() {
                                                 key={task.id}
                                                 task={task}
                                                 updateTask={updateTask}
-                                                contexts={contexts}
-                                                addContext={addContext}
-                                                deleteContext={deleteContext}
+                                                categories={categories}
+                                                addCategory={addCategory}
+                                                deleteCategory={deleteCategory}
                                                 deleteTask={deleteTask}
                                                 showAssignee={false}
                                             />
@@ -600,7 +600,7 @@ export default function App() {
                                         <tr className="bg-slate-900/30 border-b border-white/5 text-slate-500 text-[10px] uppercase tracking-[0.2em] sticky top-0 backdrop-blur-md z-10">
                                             <th className="px-4 py-4 font-bold">Team</th>
                                             <th className="px-4 py-4 font-bold">Action Item</th>
-                                            <th className="px-4 py-4 font-bold">Context</th>
+                                            <th className="px-4 py-4 font-bold">Category</th>
                                             <th className="px-4 py-4 font-bold">Due By</th>
                                             <th className="px-4 py-4 font-bold">Done</th>
                                             <th className="px-4 py-4 font-bold">Submitted On</th>
@@ -610,12 +610,12 @@ export default function App() {
                                         {getModalTasks().map(task => (
                                             <tr key={task.id} className="hover:bg-slate-800/50 transition-colors group">
                                                 <td className="px-4 py-4 text-sm font-bold text-blue-300">{task.assignee}</td>
-                                                <td className={`px-4 py-4 text-sm font-semibold ${task.status === 'Done' ? 'text-emerald-400' : 'text-slate-200'}`}>
+                                                <td className={`px-4 py-4 text-sm font-semibold ${task.status === 'Done' ? 'text-slate-500' : 'text-slate-200'}`}>
                                                     {task.action}
                                                 </td>
                                                 <td className="px-4 py-4">
                                                     {task.category && (
-                                                        <span className="text-[10px] font-black uppercase text-blue-400 tracking-wider bg-blue-900/20 px-2 py-1 rounded-md border border-blue-500/20 truncate max-w-[120px] inline-block">
+                                                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider bg-slate-900/20 px-2 py-1 rounded-md border border-slate-500/20 truncate max-w-[120px] inline-block whitespace-nowrap">
                                                             {task.category}
                                                         </span>
                                                     )}
@@ -673,8 +673,8 @@ export default function App() {
     );
 }
 
-// --- Updated Context Dropdown Component ---
-function ContextDropdown({ contexts, value, onSelect, onAdd, onDelete }) {
+// --- Updated Category Dropdown Component ---
+function CategoryDropdown({ categories, value, onSelect, onAdd, onDelete }) {
     const [isOpen, setIsOpen] = React.useState(false);
     const [isCreating, setIsCreating] = React.useState(false);
     const [newName, setNewName] = React.useState('');
@@ -710,31 +710,31 @@ function ContextDropdown({ contexts, value, onSelect, onAdd, onDelete }) {
                 onClick={() => { setIsOpen(!isOpen); setIsCreating(false); setNewName(''); }}
                 className="flex items-center gap-2 text-slate-400 text-xs font-bold hover:text-white transition-colors group"
             >
-                <span className={value ? "text-blue-400" : "italic text-slate-600"}>
-                    {value || "Select Context..."}
+                <span className={`whitespace-nowrap ${value ? "text-blue-400" : "italic text-slate-600"}`}>
+                    {value || "Select Category..."}
                 </span>
                 <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : 'opacity-50'}`} />
             </button>
 
             {isOpen && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-[100] overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2">
+                <div className="absolute top-full left-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-[100] overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2">
 
-                    {/* List Existing Contexts */}
+                    {/* List Existing Categories */}
                     <div className="max-h-48 overflow-y-auto no-scrollbar">
-                        {contexts.map(c => (
+                        {categories.map(c => (
                             <div
                                 key={c.id}
-                                className="flex items-center justify-between group/item px-4 py-3 hover:bg-blue-600 cursor-pointer transition-colors"
+                                className="flex items-center justify-between group/item px-4 py-2 hover:bg-blue-600 cursor-pointer transition-colors"
                                 onClick={() => { onSelect(c.name); setIsOpen(false); }}
                             >
-                                <span className={`text-sm font-semibold ${value === c.name ? 'text-white' : 'text-slate-300'}`}>
+                                <span className={`text-[10px] sm:text-xs font-light tracking-wide ${value === c.name ? 'text-white' : 'text-slate-300'}`}>
                                     {c.name}
                                 </span>
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); onDelete(c.id); }}
                                     className="opacity-0 group-hover/item:opacity-100 text-slate-400 hover:text-white transition-all ml-2"
-                                    title="Delete context"
+                                    title="Delete category"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
@@ -742,12 +742,12 @@ function ContextDropdown({ contexts, value, onSelect, onAdd, onDelete }) {
                         ))}
                     </div>
 
-                    {/* Separator only if there are existing contexts */}
-                    {contexts.length > 0 && <div className="h-px bg-slate-800 my-1" />}
+                    {/* Separator only if there are existing categories */}
+                    {categories.length > 0 && <div className="h-px bg-slate-800 my-1" />}
 
                     {/* Create New Logic */}
                     {isCreating ? (
-                        <div className="px-3 py-3 flex items-center gap-2 bg-slate-800/50" onClick={(e) => e.stopPropagation()}>
+                        <div className="px-3 py-2 flex items-center gap-2 bg-slate-800/50" onClick={(e) => e.stopPropagation()}>
                             <input
                                 autoFocus
                                 value={newName}
@@ -756,13 +756,13 @@ function ContextDropdown({ contexts, value, onSelect, onAdd, onDelete }) {
                                     if (e.key === 'Enter') handleAdd();
                                     if (e.key === 'Escape') { setIsCreating(false); setNewName(''); }
                                 }}
-                                placeholder="New Context..."
-                                className="flex-1 bg-slate-900 border border-slate-700 text-sm text-white rounded-lg px-2 py-1.5 outline-none focus:border-blue-500"
+                                placeholder="New Category..."
+                                className="flex-1 min-w-0 bg-slate-900 border border-slate-700 text-xs text-white rounded-lg px-2 py-1.5 outline-none focus:border-blue-500"
                             />
                             <button
                                 type="button"
                                 onClick={handleAdd}
-                                className="text-xs bg-blue-600 text-white font-black uppercase hover:bg-blue-500 px-3 py-1.5 rounded-lg transition-colors shadow-lg"
+                                className="text-[10px] bg-blue-600 text-white font-black uppercase hover:bg-blue-500 px-2 py-1 rounded-lg transition-colors shadow-lg"
                             >
                                 Add
                             </button>
@@ -771,9 +771,9 @@ function ContextDropdown({ contexts, value, onSelect, onAdd, onDelete }) {
                         <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); setIsCreating(true); }}
-                            className="w-full px-4 py-3 text-left text-sm font-bold text-blue-400 hover:bg-blue-900/30 transition-colors flex items-center gap-2"
+                            className="w-full px-4 py-2 text-left text-[10px] font-bold text-blue-400 hover:bg-blue-900/30 transition-colors flex items-center gap-2"
                         >
-                            <Plus className="w-4 h-4" /> CREATE NEW
+                            <Plus className="w-3 h-3" /> CREATE NEW
                         </button>
                     )}
                 </div>
@@ -893,7 +893,7 @@ function StatCard({ label, value, icon: Icon, color, bgColor, valueColor, onClic
 }
 
 // --- Responsive Task Components ---
-function TaskRow({ task, updateTask, contexts, addContext, deleteContext, deleteTask, showAssignee }) {
+function TaskRow({ task, updateTask, categories, addCategory, deleteCategory, deleteTask, showAssignee }) {
     const textareaRef = React.useRef(null);
 
     React.useEffect(() => {
@@ -936,13 +936,13 @@ function TaskRow({ task, updateTask, contexts, addContext, deleteContext, delete
                     {task.assignee}
                 </td>
             )}
-            <td className="px-6 py-4">
-                <ContextDropdown
-                    contexts={contexts}
+            <td className="px-6 py-4 whitespace-nowrap">
+                <CategoryDropdown
+                    categories={categories}
                     value={task.category || ''}
                     onSelect={(name) => updateTask(task.id, 'category', name)}
-                    onAdd={addContext}
-                    onDelete={deleteContext}
+                    onAdd={addCategory}
+                    onDelete={deleteCategory}
                 />
             </td>
             <td className="px-6 py-4">
@@ -972,7 +972,7 @@ function TaskRow({ task, updateTask, contexts, addContext, deleteContext, delete
     );
 }
 
-function TaskCard({ task, updateTask, contexts, addContext, deleteContext, deleteTask, showAssignee }) {
+function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, deleteTask, showAssignee }) {
     const textareaRef = React.useRef(null);
 
     React.useEffect(() => {
@@ -1023,14 +1023,14 @@ function TaskCard({ task, updateTask, contexts, addContext, deleteContext, delet
                 }}
             />
 
-            {/* Bottom row: Context and Due By */}
+            {/* Bottom row: Category and Due By */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-700/50">
-                <ContextDropdown
-                    contexts={contexts}
+                <CategoryDropdown
+                    categories={categories}
                     value={task.category || ''}
                     onSelect={(name) => updateTask(task.id, 'category', name)}
-                    onAdd={addContext}
-                    onDelete={deleteContext}
+                    onAdd={addCategory}
+                    onDelete={deleteCategory}
                 />
 
                 <div className="flex items-center gap-2">
@@ -1049,8 +1049,8 @@ function TaskCard({ task, updateTask, contexts, addContext, deleteContext, delet
 }
 
 // --- All Tasks Rolldown Board Component ---
-function AllTasksBoard({ tasks, contextFilter, updateTask }) {
-    // Helper to filter tasks by priority/status and currently selected context
+function AllTasksBoard({ tasks, categoryFilter, updateTask, categories, addCategory, deleteCategory }) {
+    // Helper to filter tasks by priority/status and currently selected category
     const getTasksByBucket = (bucketName) => {
         let bucketTasks = [];
         const sevenDaysAgo = new Date();
@@ -1080,9 +1080,9 @@ function AllTasksBoard({ tasks, contextFilter, updateTask }) {
                 break;
         }
 
-        // Apply context filter if not 'All'
-        if (contextFilter !== 'All') {
-            bucketTasks = bucketTasks.filter(t => t.category === contextFilter);
+        // Apply category filter if not 'All'
+        if (categoryFilter !== 'All') {
+            bucketTasks = bucketTasks.filter(t => t.category === categoryFilter);
         }
 
         return bucketTasks;
@@ -1114,20 +1114,39 @@ function AllTasksBoard({ tasks, contextFilter, updateTask }) {
                                 <div className="text-center py-8 text-slate-600 italic text-xs">Clear</div>
                             ) : (
                                 colTasks.map(task => (
-                                    <div key={task.id} className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 hover:border-slate-500/50 transition-colors group flex items-start gap-3">
-                                        <button
-                                            onClick={() => updateTask(task.id, 'status', task.status === 'Done' ? 'In Progress' : 'Done')}
-                                            className={`shrink-0 w-5 h-5 mt-0.5 rounded-full border-2 flex items-center justify-center transition-colors ${task.status === 'Done' ? 'bg-emerald-500 border-emerald-500' : 'border-slate-500 hover:border-blue-400'}`}
-                                        >
-                                            {task.status === 'Done' && <CheckCircle2 className="w-3 h-3 text-slate-900" />}
-                                        </button>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-[10px] font-black uppercase text-blue-400 tracking-wider mb-1 truncate">
-                                                {task.assignee}
+                                    <div key={task.id} className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 hover:border-slate-500/50 transition-colors group flex flex-col gap-2">
+                                        <div className="flex items-start gap-3">
+                                            <button
+                                                onClick={() => updateTask(task.id, 'status', task.status === 'Done' ? 'In Progress' : 'Done')}
+                                                className={`shrink-0 w-5 h-5 mt-0.5 rounded-full border-2 flex items-center justify-center transition-colors ${task.status === 'Done' ? 'bg-emerald-500 border-emerald-500' : 'border-slate-500 hover:border-blue-400'}`}
+                                            >
+                                                {task.status === 'Done' && <CheckCircle2 className="w-3 h-3 text-slate-900" />}
+                                            </button>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-[10px] font-black uppercase text-blue-400 tracking-wider mb-1 truncate">
+                                                    {task.assignee}
+                                                </div>
+                                                <textarea
+                                                    value={task.action}
+                                                    onChange={(e) => updateTask(task.id, 'action', e.target.value)}
+                                                    className={`w-full bg-transparent border-none outline-none font-bold text-sm resize-none overflow-hidden block ${task.status === 'Done' ? 'text-slate-500' : 'text-slate-200 focus:text-blue-400'}`}
+                                                    placeholder="Task description..."
+                                                    rows={1}
+                                                    onInput={(e) => {
+                                                        e.target.style.height = 'auto';
+                                                        e.target.style.height = e.target.scrollHeight + 'px';
+                                                    }}
+                                                />
                                             </div>
-                                            <div className={`text-sm font-medium leading-tight ${task.status === 'Done' ? 'text-slate-500 line-through' : 'text-slate-200'}`}>
-                                                {task.action}
-                                            </div>
+                                        </div>
+                                        <div className="flex justify-start pt-1 border-t border-slate-700/30">
+                                            <CategoryDropdown
+                                                categories={categories}
+                                                value={task.category || ''}
+                                                onSelect={(name) => updateTask(task.id, 'category', name)}
+                                                onAdd={addCategory}
+                                                onDelete={deleteCategory}
+                                            />
                                         </div>
                                     </div>
                                 ))

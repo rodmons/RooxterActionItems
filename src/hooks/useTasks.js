@@ -28,7 +28,7 @@ const calculateStats = (tasks) => {
 export function useTasks() {
     const [tasks, setTasks] = useState([]);
     const [teamMembers, setTeamMembers] = useState([]);
-    const [contexts, setContexts] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Initial fetch
@@ -39,7 +39,7 @@ export function useTasks() {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [tasksResult, teamsResult, contextsResult] = await Promise.all([
+            const [tasksResult, teamsResult, categoriesResult] = await Promise.all([
                 supabase.from('tasks').select('*').order('id', { ascending: false }),
                 supabase.from('team_members').select('*').order('name', { ascending: true }),
                 supabase.from('contexts').select('*').order('name', { ascending: true })
@@ -47,11 +47,11 @@ export function useTasks() {
 
             if (tasksResult.error) throw tasksResult.error;
             if (teamsResult.error) throw teamsResult.error;
-            if (contextsResult.error) throw contextsResult.error;
+            if (categoriesResult.error) throw categoriesResult.error;
 
             setTasks(tasksResult.data || []);
             setTeamMembers(teamsResult.data || []);
-            setContexts(contextsResult.data || []);
+            setCategories(categoriesResult.data || []);
 
             // 30-Day Trash Cleanup Logic
             const thirtyDaysAgo = new Date();
@@ -132,31 +132,31 @@ export function useTasks() {
         if (mErr || tErr) fetchData();
     };
 
-    const addContext = async (name) => {
+    const addCategory = async (name) => {
         const trimmed = name.trim();
         if (!trimmed) return;
-        const newContext = { name: trimmed };
-        setContexts([...contexts, { id: Date.now(), ...newContext }]);
+        const newCategory = { name: trimmed };
+        setCategories([...categories, { id: Date.now(), ...newCategory }]);
 
         const { data, error } = await supabase
             .from('contexts')
-            .insert([newContext])
+            .insert([newCategory])
             .select();
 
         if (error) {
-            console.error('Error adding context:', error);
+            console.error('Error adding category:', error);
             fetchData();
         } else if (data) {
-            setContexts(prev => prev.map(c => c.name === trimmed ? data[0] : c));
+            setCategories(prev => prev.map(c => c.name === trimmed ? data[0] : c));
         }
         return data;
     };
 
-    const deleteContext = async (id) => {
-        setContexts(prev => prev.filter(c => c.id !== id));
+    const deleteCategory = async (id) => {
+        setCategories(prev => prev.filter(c => c.id !== id));
         const { error } = await supabase.from('contexts').delete().eq('id', id);
         if (error) {
-            console.error('Error deleting context:', error);
+            console.error('Error deleting category:', error);
             fetchData();
         }
     };
@@ -164,13 +164,13 @@ export function useTasks() {
     const addTask = async (assignee) => {
         const todayStr = new Date().toISOString().split('T')[0];
         const dueByType = 'This Week'; // Default
-        const defaultContext = contexts.length > 0 ? contexts[0].name : '';
+        const defaultCategory = categories.length > 0 ? categories[0].name : '';
 
         const newTask = {
             id: Date.now(),
             status: 'To Do',
             action: '',
-            category: defaultContext,
+            category: defaultCategory,
             due_by_type: dueByType,
             priority: getPriorityFromDueByType(dueByType),
             target_deadline: calculateTargetDeadline(dueByType),
@@ -254,14 +254,14 @@ export function useTasks() {
     return {
         tasks,
         teamMembers,
-        contexts,
+        categories,
         stats,
         addTask,
         addTeamMember,
         deleteTeamMember,
         updateTeamMember,
-        addContext,
-        deleteContext,
+        addCategory,
+        deleteCategory,
         updateTask,
         deleteTask,
         permanentlyDeleteTask,
