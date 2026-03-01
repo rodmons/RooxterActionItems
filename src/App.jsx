@@ -26,6 +26,21 @@ import {
 import { useTasks } from './hooks/useTasks';
 import { STATUS_OPTIONS, DUE_BY_OPTIONS } from './constants';
 import { formatDate, isTaskOverdue } from './utils/dateUtils';
+import {
+    DndContext,
+    pointerWithin,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragOverlay,
+    defaultDropAnimationSideEffects,
+    useDroppable,
+    useDraggable
+} from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
+import { snapCenterToCursor } from '@dnd-kit/modifiers';
+
 
 export default function App() {
     const {
@@ -488,7 +503,7 @@ export default function App() {
                                         </select>
                                     </div>
                                 </div>
-                                <AllTasksBoard tasks={tasks} categoryFilter={allTasksCategoryFilter} updateTask={updateTask} categories={categories} addCategory={addCategory} deleteCategory={deleteCategory} />
+                                <AllTasksBoard tasks={tasks} categoryFilter={allTasksCategoryFilter} updateTask={updateTask} categories={categories} addCategory={addCategory} deleteCategory={deleteCategory} deleteTask={deleteTask} />
                             </div>
                         )}
 
@@ -1178,8 +1193,97 @@ function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, d
     );
 }
 
+// --- Kanban Helpers ---
+function DraggableTaskCard({ task, updateTask, categories, addCategory, deleteCategory }) {
+    const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+        id: task.id,
+        data: { task }
+    });
+
+    const style = {
+        opacity: isDragging ? 0 : 1, // Completely hide original so only overlay is visible
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            className="w-full relative touch-none" // touch-none to optimize mobile drag initiation
+            {...attributes}
+            {...listeners}
+        >
+            <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 hover:border-slate-500/50 transition-colors group flex flex-col gap-2">
+                <div className="flex items-start gap-3">
+                    <button
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={() => updateTask(task.id, 'status', task.status === 'Done' ? 'In Progress' : 'Done')}
+                        className={`shrink-0 w-5 h-5 mt-0.5 rounded-full border-2 flex items-center justify-center transition-colors ${task.status === 'Done' ? 'bg-emerald-500 border-emerald-500' : 'border-slate-500 hover:border-blue-400'}`}
+                    >
+                        {task.status === 'Done' && <CheckCircle2 className="w-3 h-3 text-slate-900" />}
+                    </button>
+                    <div className="flex-1 min-w-0">
+                        <div className="text-[10px] font-black uppercase text-blue-400 tracking-wider mb-1 truncate">
+                            {task.assignee}
+                        </div>
+                        <textarea
+                            onPointerDown={(e) => e.stopPropagation()}
+                            value={task.action}
+                            onChange={(e) => updateTask(task.id, 'action', e.target.value)}
+                            className={`w-full bg-transparent border-none outline-none font-bold text-sm resize-none overflow-hidden block ${task.status === 'Done' ? 'text-slate-500' : 'text-slate-200 focus:text-blue-400'}`}
+                            placeholder="Task description..."
+                            rows={1}
+                            onInput={(e) => {
+                                e.target.style.height = 'auto';
+                                e.target.style.height = e.target.scrollHeight + 'px';
+                            }}
+                        />
+                    </div>
+                </div>
+                <div
+                    className="flex justify-start pt-1 border-t border-slate-700/30"
+                    onPointerDown={(e) => e.stopPropagation()}
+                >
+                    <CategoryDropdown
+                        categories={categories}
+                        value={task.category || ''}
+                        onSelect={(name) => updateTask(task.id, 'category', name)}
+                        onAdd={addCategory}
+                        onDelete={deleteCategory}
+                    />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function DroppableColumn({ id, title, colorClass, bgClass, borderClass, activeBorderClass, tasks, children }) {
+    const { isOver, setNodeRef } = useDroppable({ id });
+    const currentBorder = isOver ? activeBorderClass : borderClass;
+
+    return (
+        <div ref={setNodeRef} className={`flex flex-col h-full bg-slate-900/40 rounded-2xl border ${currentBorder} overflow-hidden transition-all duration-300`}>
+            {/* Column Header */}
+            <div className={`${bgClass} p-3 border-b ${currentBorder} flex justify-between items-center transition-all duration-300`}>
+                <h3 className={`text-xs font-black uppercase tracking-wider ${colorClass}`}>{title}</h3>
+                <span className={`text-[10px] font-bold ${colorClass} opacity-70`}>{tasks.length}</span>
+            </div>
+            {/* Task List */}
+            <div className="flex-1 p-2 flex flex-col gap-2 overflow-y-auto max-h-[500px] no-scrollbar">
+                {children}
+            </div>
+        </div>
+    );
+}
+
 // --- All Tasks Rolldown Board Component ---
 function AllTasksBoard({ tasks, categoryFilter, updateTask, categories, addCategory, deleteCategory }) {
+    const [activeId, setActiveId] = React.useState(null);
+    const activeTask = activeId ? tasks.find(t => t.id === activeId) : null;
+
+    const sensors = useSensors(
+        useSensor(PointerSensor)
+    );
+
     // Helper to filter tasks by priority/status and currently selected category
     const getTasksByBucket = (bucketName) => {
         let bucketTasks = [];
@@ -1219,72 +1323,98 @@ function AllTasksBoard({ tasks, categoryFilter, updateTask, categories, addCateg
     };
 
     const columns = [
-        { id: 'P1', title: 'P1 (Critical)', colorClass: 'text-red-500', bgClass: 'bg-red-500/10', borderClass: 'border-red-500/20' },
-        { id: 'P2', title: 'P2 (High)', colorClass: 'text-orange-500', bgClass: 'bg-orange-500/10', borderClass: 'border-orange-500/20' },
-        { id: 'P3', title: 'P3 (Normal)', colorClass: 'text-yellow-500', bgClass: 'bg-yellow-500/10', borderClass: 'border-yellow-500/20' },
-        { id: 'Backburner', title: 'Backburner', colorClass: 'text-slate-400', bgClass: 'bg-slate-500/10', borderClass: 'border-slate-500/20' },
-        { id: 'Completed', title: 'Done (7 Days)', colorClass: 'text-emerald-500', bgClass: 'bg-emerald-500/10', borderClass: 'border-emerald-500/20' },
+        { id: 'P1', title: 'P1 (Critical)', colorClass: 'text-red-500', bgClass: 'bg-red-500/10', borderClass: 'border-red-500/20', activeBorderClass: 'border-red-400 ring-2 ring-red-500 shadow-[inset_0_0_20px_rgba(239,68,68,0.2)]', newPriority: 'P1', newDueBy: 'Today' },
+        { id: 'P2', title: 'P2 (High)', colorClass: 'text-orange-500', bgClass: 'bg-orange-500/10', borderClass: 'border-orange-500/20', activeBorderClass: 'border-orange-400 ring-2 ring-orange-500 shadow-[inset_0_0_20px_rgba(249,115,22,0.2)]', newPriority: 'P2', newDueBy: 'This Week' },
+        { id: 'P3', title: 'P3 (Normal)', colorClass: 'text-yellow-500', bgClass: 'bg-yellow-500/10', borderClass: 'border-yellow-500/20', activeBorderClass: 'border-yellow-400 ring-2 ring-yellow-500 shadow-[inset_0_0_20px_rgba(234,179,8,0.2)]', newPriority: 'P3', newDueBy: 'This Month' },
+        { id: 'Backburner', title: 'Backburner', colorClass: 'text-slate-400', bgClass: 'bg-slate-500/10', borderClass: 'border-slate-500/20', activeBorderClass: 'border-slate-300 ring-2 ring-slate-400 shadow-[inset_0_0_20px_rgba(148,163,184,0.2)]', newPriority: 'Backburner', newDueBy: 'Backburner' },
+        { id: 'Completed', title: 'Done (7 Days)', colorClass: 'text-emerald-500', bgClass: 'bg-emerald-500/10', borderClass: 'border-emerald-500/20', activeBorderClass: 'border-emerald-400 ring-2 ring-emerald-500 shadow-[inset_0_0_20px_rgba(16,185,129,0.2)]', isDone: true },
     ];
 
-    return (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {columns.map(col => {
-                const colTasks = getTasksByBucket(col.id);
-                return (
-                    <div key={col.id} className={`flex flex-col h-full bg-slate-900/40 rounded-2xl border ${col.borderClass} overflow-hidden`}>
-                        {/* Column Header */}
-                        <div className={`${col.bgClass} p-3 border-b ${col.borderClass} flex justify-between items-center`}>
-                            <h3 className={`text-xs font-black uppercase tracking-wider ${col.colorClass}`}>{col.title}</h3>
-                            <span className={`text-[10px] font-bold ${col.colorClass} opacity-70`}>{colTasks.length}</span>
-                        </div>
+    function handleDragStart(event) {
+        setActiveId(event.active.id);
+    }
 
-                        {/* Task List */}
-                        <div className="flex-1 p-2 flex flex-col gap-2 overflow-y-auto max-h-[500px] no-scrollbar">
+    function handleDragEnd(event) {
+        const { active, over } = event;
+        setActiveId(null);
+
+        if (!over) return;
+
+        const taskId = active.id;
+        const destColId = over.id;
+
+        const destCol = columns.find(c => c.id === destColId);
+
+        // If dropping into a valid column
+        if (destCol) {
+            if (destCol.isDone) {
+                updateTask(taskId, 'status', 'Done');
+            } else {
+                updateTask(taskId, {
+                    priority: destCol.newPriority,
+                    due_by_type: destCol.newDueBy,
+                    status: 'In Progress'
+                });
+            }
+        }
+    }
+    return (
+        <DndContext
+            sensors={sensors}
+            collisionDetection={pointerWithin}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+        >
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {columns.map(col => {
+                    const colTasks = getTasksByBucket(col.id);
+                    return (
+                        <DroppableColumn key={col.id} id={col.id} {...col} tasks={colTasks}>
                             {colTasks.length === 0 ? (
                                 <div className="text-center py-8 text-slate-600 italic text-xs">Clear</div>
                             ) : (
                                 colTasks.map(task => (
-                                    <div key={task.id} className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 hover:border-slate-500/50 transition-colors group flex flex-col gap-2">
-                                        <div className="flex items-start gap-3">
-                                            <button
-                                                onClick={() => updateTask(task.id, 'status', task.status === 'Done' ? 'In Progress' : 'Done')}
-                                                className={`shrink-0 w-5 h-5 mt-0.5 rounded-full border-2 flex items-center justify-center transition-colors ${task.status === 'Done' ? 'bg-emerald-500 border-emerald-500' : 'border-slate-500 hover:border-blue-400'}`}
-                                            >
-                                                {task.status === 'Done' && <CheckCircle2 className="w-3 h-3 text-slate-900" />}
-                                            </button>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="text-[10px] font-black uppercase text-blue-400 tracking-wider mb-1 truncate">
-                                                    {task.assignee}
-                                                </div>
-                                                <textarea
-                                                    value={task.action}
-                                                    onChange={(e) => updateTask(task.id, 'action', e.target.value)}
-                                                    className={`w-full bg-transparent border-none outline-none font-bold text-sm resize-none overflow-hidden block ${task.status === 'Done' ? 'text-slate-500' : 'text-slate-200 focus:text-blue-400'}`}
-                                                    placeholder="Task description..."
-                                                    rows={1}
-                                                    onInput={(e) => {
-                                                        e.target.style.height = 'auto';
-                                                        e.target.style.height = e.target.scrollHeight + 'px';
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-start pt-1 border-t border-slate-700/30">
-                                            <CategoryDropdown
-                                                categories={categories}
-                                                value={task.category || ''}
-                                                onSelect={(name) => updateTask(task.id, 'category', name)}
-                                                onAdd={addCategory}
-                                                onDelete={deleteCategory}
-                                            />
-                                        </div>
-                                    </div>
+                                    <DraggableTaskCard
+                                        key={task.id}
+                                        task={task}
+                                        updateTask={updateTask}
+                                        categories={categories}
+                                        addCategory={addCategory}
+                                        deleteCategory={deleteCategory}
+                                    />
                                 ))
                             )}
+                        </DroppableColumn>
+                    );
+                })}
+            </div>
+
+            <DragOverlay modifiers={[snapCenterToCursor]}>
+                {activeTask ? (
+                    <div className="rotate-2 scale-[1.05] shadow-[0_20px_40px_-15px_rgba(59,130,246,0.6)] ring-2 ring-blue-500 rounded-xl opacity-90 pointer-events-none w-[280px]">
+                        <div className="bg-slate-800/90 p-3 rounded-xl border border-slate-700/50 flex flex-col gap-2">
+                            <div className="flex items-start gap-3">
+                                <button className={`shrink-0 w-5 h-5 mt-0.5 rounded-full border-2 flex items-center justify-center transition-colors ${activeTask.status === 'Done' ? 'bg-emerald-500 border-emerald-500' : 'border-slate-500'}`}>
+                                    {activeTask.status === 'Done' && <CheckCircle2 className="w-3 h-3 text-slate-900" />}
+                                </button>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-[10px] font-black uppercase text-blue-400 tracking-wider mb-1 truncate">
+                                        {activeTask.assignee}
+                                    </div>
+                                    <div className={`w-full bg-transparent border-none outline-none font-bold text-sm block min-h-6 break-words ${activeTask.status === 'Done' ? 'text-slate-500' : 'text-slate-200'}`}>
+                                        {activeTask.action || "Task description..."}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex justify-start pt-1 border-t border-slate-700/30">
+                                <span className="bg-slate-800/80 border border-slate-700 text-slate-300 text-[10px] font-bold rounded-lg px-2 py-1">
+                                    {activeTask.category || "Select Category..."}
+                                </span>
+                            </div>
                         </div>
                     </div>
-                );
-            })}
-        </div>
+                ) : null}
+            </DragOverlay>
+        </DndContext>
     );
 }

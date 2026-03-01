@@ -194,17 +194,24 @@ export function useTasks() {
         }
     };
 
-    const updateTask = async (id, field, value) => {
-        let updates = { [field]: value };
+    const updateTask = async (id, fieldOrObject, value) => {
+        let updates = {};
+
+        // Support bulk updates where fieldOrObject is an object
+        if (typeof fieldOrObject === 'object' && fieldOrObject !== null) {
+            updates = { ...fieldOrObject };
+        } else {
+            updates = { [fieldOrObject]: value };
+        }
 
         // If due_by_type changes, we must auto-calculate priority and target_deadline
-        if (field === 'due_by_type') {
-            updates.priority = getPriorityFromDueByType(value);
-            updates.target_deadline = calculateTargetDeadline(value);
+        if (updates.due_by_type) {
+            updates.priority = getPriorityFromDueByType(updates.due_by_type);
+            updates.target_deadline = calculateTargetDeadline(updates.due_by_type);
         }
 
         // Optimistic UI update
-        setTasks(tasks.map(t => t.id === id ? { ...t, ...updates } : t));
+        setTasks(prevTasks => prevTasks.map(t => t.id === id ? { ...t, ...updates } : t));
 
         const { error } = await supabase
             .from('tasks')
