@@ -68,7 +68,7 @@ export default function App() {
     const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
     const [showAllTasksBoard, setShowAllTasksBoard] = useState(false);
     const [allTasksCategoryFilter, setAllTasksCategoryFilter] = useState('All');
-    const [selectedCalendarTask, setSelectedCalendarTask] = useState(null);
+    const [selectedDateTasks, setSelectedDateTasks] = useState(null);
     const [calendarMode, setCalendarMode] = useState('week'); // 'month' or 'week'
     const teamDropdownRef = React.useRef(null);
 
@@ -210,43 +210,33 @@ export default function App() {
                             TASKKER.IO
                         </h1>
                     </div>
-
-                    <div className="fixed top-4 right-4 md:top-8 md:right-8 z-[100]">
-                        <button
-                            onClick={resetData}
-                            className="bg-slate-900/80 backdrop-blur-md border border-slate-800 hover:bg-slate-800 p-3 rounded-2xl transition-all shadow-lg group"
-                            title="Refresh Data"
-                        >
-                            <RotateCcw className="w-5 h-5 text-slate-500 group-hover:text-white group-hover:rotate-[-45deg] transition-all" />
-                        </button>
-                    </div>
                 </header>
 
                 {/* Global Navigation - Adjusted for Minimalist Side-by-Side Appeal */}
-                <nav className="flex flex-nowrap items-center gap-1 bg-slate-900/40 backdrop-blur-md border border-slate-800/50 p-1 rounded-2xl w-fit mb-6 md:mb-8 relative z-30">
+                <nav className="flex flex-nowrap items-center justify-between md:justify-start gap-1 md:gap-2 bg-slate-900/40 backdrop-blur-md border border-slate-800/50 p-1 rounded-2xl w-full md:w-fit mb-6 md:mb-8 relative z-30">
                     <button
                         onClick={() => setActiveTab('dashboard')}
-                        className={`shrink-0 flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold transition-all text-xs ${activeTab === 'dashboard'
+                        className={`flex items-center justify-center gap-1.5 md:gap-2 px-2 md:px-4 py-2 rounded-xl font-bold transition-all text-[10px] md:text-xs min-w-0 ${activeTab === 'dashboard'
                             ? 'bg-blue-600 text-white shadow-md'
                             : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                             }`}
                     >
-                        <LayoutDashboard className="w-3.5 h-3.5" /> Overview
+                        <LayoutDashboard className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">Overview</span>
                     </button>
 
-                    <div className="relative shrink-0 flex items-center" ref={teamDropdownRef}>
+                    <div className="relative flex items-center min-w-0" ref={teamDropdownRef}>
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold transition-all text-xs ${activeTab === 'team'
+                            className={`flex items-center justify-center gap-1.5 md:gap-2 px-2 md:px-4 py-2 rounded-xl font-bold transition-all text-[10px] md:text-xs w-full ${activeTab === 'team'
                                 ? 'bg-blue-600 text-white shadow-md'
                                 : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                                 }`}
                         >
-                            <Users className="w-3.5 h-3.5" />
-                            <span className="truncate max-w-[120px]">
+                            <Users className="w-3.5 h-3.5 shrink-0" />
+                            <span className="truncate max-w-[70px] md:max-w-[120px]">
                                 {(activeTab === 'team' && selectedMember) ? selectedMember : "Team Member"}
                             </span>
-                            <ChevronDown className={`w-3 h-3 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                            <ChevronDown className={`w-3 h-3 shrink-0 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
 
                         {isDropdownOpen && (
@@ -273,12 +263,12 @@ export default function App() {
 
                     <button
                         onClick={() => setActiveTab('calendar')}
-                        className={`shrink-0 flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold transition-all text-xs ${activeTab === 'calendar'
+                        className={`flex items-center justify-center gap-1.5 md:gap-2 px-2 md:px-4 py-2 rounded-xl font-bold transition-all text-[10px] md:text-xs min-w-0 ${activeTab === 'calendar'
                             ? 'bg-blue-600 text-white shadow-md'
                             : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                             }`}
                     >
-                        <CalendarDays className="w-3.5 h-3.5" /> Calendar
+                        <CalendarDays className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">Calendar</span>
                     </button>
 
                     {/* View: Deleted / Trash (Temporarily Hidden)
@@ -400,7 +390,10 @@ export default function App() {
                                                     const isToday = cellDate.toDateString() === new Date().toDateString();
 
                                                     return (
-                                                        <div key={cellIdx} className="relative pt-6 px-1 pb-4 md:px-2 md:pb-6 border-b border-slate-800/30 flex flex-col bg-transparent group overflow-visible transition-colors hover:bg-slate-800/20 min-h-[100px]">
+                                                        <div key={cellIdx}
+                                                            onClick={() => { if (dayTasks.length > 0) setSelectedDateTasks({ date: cellDate, tasks: dayTasks }); }}
+                                                            className={`relative pt-6 px-1 pb-4 md:px-2 md:pb-6 border-b border-slate-800/30 flex flex-col bg-transparent group overflow-visible transition-colors hover:bg-slate-800/20 min-h-[100px] ${dayTasks.length > 0 ? 'cursor-pointer' : ''}`}
+                                                        >
                                                             <div className={`absolute top-2 left-2 w-5 h-5 md:w-6 md:h-6 flex items-center justify-center rounded-full text-xs md:text-sm font-black ${isToday ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50' : 'text-slate-300 group-hover:text-blue-400'}`}>
                                                                 {dateCount}
                                                             </div>
@@ -408,14 +401,17 @@ export default function App() {
                                                                 {dayTasks.map(task => (
                                                                     <div
                                                                         key={task.id}
-                                                                        onClick={(e) => { e.stopPropagation(); setSelectedCalendarTask(task); }}
-                                                                        className={`shrink-0 text-[10px] md:text-xs leading-tight md:leading-[1.2] px-1.5 py-1 md:px-2 md:py-1.5 md:font-semibold rounded-md mb-1.5 border bg-slate-900 shadow-sm transition-all hover:scale-[1.02] cursor-pointer
-                                                                            ${task.priority?.includes('P1') ? 'border-amber-500/30 text-amber-200 hover:border-amber-500' :
-                                                                                task.priority?.includes('P2') ? 'border-orange-500/30 text-orange-200 hover:border-orange-500' :
-                                                                                    'border-blue-500/30 text-blue-200 hover:border-blue-500'}`}
+                                                                        className={`shrink-0 transition-all hover:scale-[1.02]
+                                                                            h-1.5 w-full rounded-full mb-1
+                                                                            md:h-auto md:w-auto md:rounded-md md:mb-1.5
+                                                                            md:text-[10px] md:leading-[1.2] md:px-2 md:py-1 md:font-semibold md:border md:bg-slate-900 md:shadow-sm
+                                                                            ${task.priority?.includes('P1') ? 'bg-red-500 md:bg-slate-900 md:border-red-500/30 md:text-red-200' :
+                                                                                task.priority?.includes('P2') ? 'bg-orange-500 md:bg-slate-900 md:border-orange-500/30 md:text-orange-200' :
+                                                                                    task.priority?.includes('P3') ? 'bg-yellow-500 md:bg-slate-900 md:border-yellow-500/30 md:text-yellow-200' :
+                                                                                        'bg-slate-500 md:bg-slate-900 md:border-slate-500/30 md:text-slate-200'}`}
                                                                         title={task.action}
                                                                     >
-                                                                        <div className="truncate">{task.action}</div>
+                                                                        <div className="hidden md:block truncate">{task.action}</div>
                                                                     </div>
                                                                 ))}
                                                             </div>
@@ -441,7 +437,10 @@ export default function App() {
                                             const isToday = cellDate.toDateString() === new Date().toDateString();
 
                                             return (
-                                                <div key={i} className="min-h-[60px] md:min-h-[120px] h-[60px] md:h-[120px] relative pt-5 md:pt-6 px-1 pb-1 md:px-2 md:pb-2 border border-slate-800/50 rounded-lg md:rounded-xl flex flex-col bg-slate-900/30 overflow-hidden">
+                                                <div key={i}
+                                                    onClick={() => { if (dayTasks.length > 0) setSelectedDateTasks({ date: cellDate, tasks: dayTasks }); }}
+                                                    className={`min-h-[60px] md:min-h-[120px] h-[60px] md:h-[120px] relative pt-5 md:pt-6 px-1 pb-1 md:px-2 md:pb-2 border border-slate-800/50 rounded-lg md:rounded-xl flex flex-col bg-slate-900/30 overflow-hidden transition-colors ${dayTasks.length > 0 ? 'cursor-pointer hover:bg-slate-800/40 hover:border-slate-600' : ''}`}
+                                                >
                                                     <div className={`absolute top-1 left-1 w-4 h-4 md:w-5 md:h-5 flex items-center justify-center rounded-sm text-[8px] md:text-[10px] font-bold ${isToday ? 'bg-blue-400/20 text-blue-400' : 'text-slate-500'}`}>
                                                         {dateCount}
                                                     </div>
@@ -449,14 +448,17 @@ export default function App() {
                                                         {dayTasks.map(task => (
                                                             <div
                                                                 key={task.id}
-                                                                onClick={(e) => { e.stopPropagation(); setSelectedCalendarTask(task); }}
-                                                                className={`shrink-0 text-[8px] md:text-xs leading-tight md:leading-[1.2] truncate px-1 py-0.5 md:px-2 md:py-1 md:font-semibold rounded-sm md:rounded-md mb-[2px] md:mb-1 border bg-slate-800/80 transition-all hover:scale-[1.02] cursor-pointer
-                                                                    ${task.priority?.includes('P1') ? 'border-amber-500/50 text-amber-200' :
-                                                                        task.priority?.includes('P2') ? 'border-orange-500/50 text-orange-200' :
-                                                                            'border-blue-500/50 text-blue-200'}`}
+                                                                className={`shrink-0 transition-all hover:scale-[1.02]
+                                                                    h-1 w-full rounded-full mb-0.5
+                                                                    md:h-auto md:w-auto md:rounded md:mb-1
+                                                                    md:text-[9px] md:leading-tight md:px-1.5 md:py-0.5 md:font-semibold md:border md:bg-slate-800/80
+                                                                    ${task.priority?.includes('P1') ? 'bg-red-500 md:bg-transparent md:border-red-500/50 md:text-red-200' :
+                                                                        task.priority?.includes('P2') ? 'bg-orange-500 md:bg-transparent md:border-orange-500/50 md:text-orange-200' :
+                                                                            task.priority?.includes('P3') ? 'bg-yellow-500 md:bg-transparent md:border-yellow-500/50 md:text-yellow-200' :
+                                                                                'bg-slate-500 md:bg-transparent md:border-slate-500/50 md:text-slate-200'}`}
                                                                 title={task.action}
                                                             >
-                                                                {task.action}
+                                                                <div className="hidden md:block truncate">{task.action}</div>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -773,37 +775,55 @@ export default function App() {
                 </div>
             )}
 
-            {/* CALENDAR TASK POPUP MODAL */}
-            {selectedCalendarTask && (
+            {/* CALENDAR DATE TASKS POPUP MODAL */}
+            {selectedDateTasks && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedCalendarTask(null)}></div>
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedDateTasks(null)}></div>
                     <div className="relative w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200">
                         <button
-                            onClick={() => setSelectedCalendarTask(null)}
+                            onClick={() => setSelectedDateTasks(null)}
                             className="absolute -top-12 right-0 p-2 bg-slate-800/50 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors z-[70]"
                         >
                             <X className="w-5 h-5" />
                         </button>
-                        {/* We use the exact same TaskCard component that powers the Team Member mobile view */}
-                        {(() => {
-                            // Find the live task from state to ensure it updates when edited
-                            const liveTask = tasks.find(t => t.id === selectedCalendarTask.id);
-                            if (!liveTask) return null;
-                            return (
-                                <TaskCard
-                                    task={liveTask}
-                                    updateTask={updateTask}
-                                    categories={categories}
-                                    addCategory={addCategory}
-                                    deleteCategory={deleteCategory}
-                                    deleteTask={(id) => {
-                                        deleteTask(id);
-                                        setSelectedCalendarTask(null);
-                                    }}
-                                    showAssignee={true}
-                                />
-                            );
-                        })()}
+
+                        <div className="mb-4 text-center">
+                            <h3 className="text-xl md:text-2xl font-black text-white tracking-widest uppercase">
+                                Tasks for {selectedDateTasks.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </h3>
+                        </div>
+
+                        <div className="flex flex-col gap-4 max-h-[70vh] overflow-y-auto no-scrollbar pb-4 px-2">
+                            {selectedDateTasks.tasks.map(calendarTask => {
+                                // Find the live task from state to ensure it updates when edited
+                                const liveTask = tasks.find(t => t.id === calendarTask.id);
+                                if (!liveTask) return null;
+                                return (
+                                    <TaskCard
+                                        key={liveTask.id}
+                                        task={liveTask}
+                                        updateTask={updateTask}
+                                        categories={categories}
+                                        addCategory={addCategory}
+                                        deleteCategory={deleteCategory}
+                                        deleteTask={(id) => {
+                                            deleteTask(id);
+                                            // Handle closing the modal if no tasks are left
+                                            const remainingTasks = selectedDateTasks.tasks.filter(t => t.id !== id);
+                                            if (remainingTasks.length === 0) {
+                                                setSelectedDateTasks(null);
+                                            } else {
+                                                setSelectedDateTasks({
+                                                    ...selectedDateTasks,
+                                                    tasks: remainingTasks
+                                                });
+                                            }
+                                        }}
+                                        showAssignee={true}
+                                    />
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
             )}
