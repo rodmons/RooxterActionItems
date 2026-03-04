@@ -1095,12 +1095,21 @@ function TaskRow({ task, updateTask, categories, addCategory, deleteCategory, de
                     {STATUS_OPTIONS.filter(o => o.value !== 'Deleted').map(opt => <option key={opt.value} value={opt.value} className="bg-slate-900">{opt.label}</option>)}
                 </select>
             </td>
-            <td className="px-6 py-4 min-w-[250px] w-full max-w-sm">
+            <td className="px-6 py-4 min-w-[250px] w-full max-w-sm relative">
+                {/* BIG BACKGROUND OVERDUE TEXT */}
+                {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && (
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden z-0">
+                        <span className="text-red-500/10 font-black text-5xl md:text-6xl tracking-[0.2em] uppercase -rotate-6 select-none whitespace-nowrap">
+                            OVERDUE!
+                        </span>
+                    </div>
+                )}
+
                 <textarea
                     ref={textareaRef}
                     value={task.action}
                     onChange={(e) => updateTask(task.id, 'action', e.target.value)}
-                    className="bg-transparent border-none outline-none w-full font-bold text-sm text-slate-200 focus:text-blue-400 transition-colors placeholder:text-slate-800 resize-none overflow-hidden block"
+                    className="bg-transparent border-none outline-none w-full font-bold text-sm text-slate-200 focus:text-blue-400 transition-colors placeholder:text-slate-800 resize-none overflow-hidden block relative z-10"
                     placeholder="Task description..."
                     rows={1}
                     onInput={(e) => {
@@ -1124,17 +1133,12 @@ function TaskRow({ task, updateTask, categories, addCategory, deleteCategory, de
                 />
             </td>
             <td className="px-6 py-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 relative z-10">
                     <DueByDropdown
                         value={task.due_by_type || ''}
                         priority={task.priority}
                         onSelect={(val) => updateTask(task.id, 'due_by_type', val)}
                     />
-                    {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && (
-                        <span className="text-[10px] text-red-500 font-bold uppercase whitespace-nowrap">
-                            Overdue!
-                        </span>
-                    )}
                 </div>
             </td>
             <td className="px-6 py-4 text-center">
@@ -1160,9 +1164,19 @@ function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, d
     }, [task.action]);
 
     return (
-        <div className={`bg-slate-800/40 p-4 rounded-2xl border ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'border-red-900/50 bg-red-900/10' : 'border-slate-700/50'} flex flex-col gap-4 relative shadow-lg`}>
+        <div className={`bg-slate-800/40 p-4 rounded-2xl border ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'border-red-900/50 bg-red-900/10' : 'border-slate-700/50'} flex flex-col gap-4 relative shadow-lg overflow-hidden`}>
+
+            {/* BIG BACKGROUND OVERDUE TEXT */}
+            {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && (
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-0">
+                    <span className="text-red-500/10 font-black text-6xl tracking-[0.2em] uppercase -rotate-12 select-none whitespace-nowrap">
+                        OVERDUE!
+                    </span>
+                </div>
+            )}
+
             {/* Top row: Status and Assignee */}
-            <div className="flex justify-between items-start gap-2">
+            <div className="flex justify-between items-start gap-2 relative z-10">
                 <select
                     value={task.status}
                     onChange={(e) => updateTask(task.id, 'status', e.target.value)}
@@ -1192,7 +1206,7 @@ function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, d
                 ref={textareaRef}
                 value={task.action}
                 onChange={(e) => updateTask(task.id, 'action', e.target.value)}
-                className="bg-transparent border-none outline-none w-full font-bold text-sm text-white focus:text-blue-400 transition-colors placeholder:text-slate-600 resize-none overflow-hidden block"
+                className="bg-transparent border-none outline-none w-full font-bold text-sm text-white focus:text-blue-400 transition-colors placeholder:text-slate-600 resize-none overflow-hidden block relative z-10"
                 placeholder="Task description..."
                 rows={1}
                 onInput={(e) => {
@@ -1202,7 +1216,7 @@ function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, d
             />
 
             {/* Bottom row: Category and Due By */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-700/50">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-700/50 relative z-10">
                 <CategoryDropdown
                     categories={categories}
                     value={task.category || ''}
@@ -1217,9 +1231,6 @@ function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, d
                         priority={task.priority}
                         onSelect={(val) => updateTask(task.id, 'due_by_type', val)}
                     />
-                    {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && (
-                        <span className="text-[9px] text-red-500 font-bold uppercase whitespace-nowrap">Overdue!</span>
-                    )}
                 </div>
             </div>
         </div>
