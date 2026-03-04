@@ -70,6 +70,18 @@ export default function App() {
     const [allTasksCategoryFilter, setAllTasksCategoryFilter] = useState('All');
     const [selectedCalendarTask, setSelectedCalendarTask] = useState(null);
     const [calendarMode, setCalendarMode] = useState('week'); // 'month' or 'week'
+    const teamDropdownRef = React.useRef(null);
+
+    // Close Team Member dropdown on outside click
+    useEffect(() => {
+        const handler = (e) => {
+            if (teamDropdownRef.current && !teamDropdownRef.current.contains(e.target)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
 
     // Calendar Tasks Logic
     const calendarDays = React.useMemo(() => {
@@ -192,22 +204,17 @@ export default function App() {
             <div className="max-w-7xl mx-auto relative">
 
                 {/* Header Section */}
-                <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <Activity className="w-5 h-5 text-blue-500" />
-                            <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em]">System Active</span>
-                        </div>
-                        <h1 className="flex items-baseline gap-1 text-6xl font-black tracking-tighter bg-gradient-to-r from-blue-400 via-indigo-400 to-blue-600 bg-clip-text text-transparent">
-                            taskker.io
+                <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 md:mb-4 gap-6">
+                    <div className="flex flex-col items-end w-fit">
+                        <h1 className="text-3xl md:text-4xl font-extralight tracking-widest text-slate-200">
+                            TASKKER.IO
                         </h1>
-                        <p className="text-slate-500 text-sm font-medium mt-2">Team workflow and production control center.</p>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="fixed top-4 right-4 md:top-8 md:right-8 z-[100]">
                         <button
                             onClick={resetData}
-                            className="bg-slate-900 border border-slate-800 hover:bg-slate-800 p-3 rounded-2xl transition-all group"
+                            className="bg-slate-900/80 backdrop-blur-md border border-slate-800 hover:bg-slate-800 p-3 rounded-2xl transition-all shadow-lg group"
                             title="Refresh Data"
                         >
                             <RotateCcw className="w-5 h-5 text-slate-500 group-hover:text-white group-hover:rotate-[-45deg] transition-all" />
@@ -215,40 +222,40 @@ export default function App() {
                     </div>
                 </header>
 
-                {/* Global Navigation - Adjusted for Mobile Stability */}
-                <nav className="flex flex-wrap items-center gap-2 bg-slate-900/40 backdrop-blur-md border border-slate-800/50 p-1.5 rounded-2xl w-full md:w-fit mb-10 relative z-30">
+                {/* Global Navigation - Adjusted for Minimalist Side-by-Side Appeal */}
+                <nav className="flex flex-nowrap items-center gap-1 bg-slate-900/40 backdrop-blur-md border border-slate-800/50 p-1 rounded-2xl w-fit mb-6 md:mb-8 relative z-30">
                     <button
                         onClick={() => setActiveTab('dashboard')}
-                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'dashboard'
-                            ? 'bg-blue-600 text-white shadow-lg'
+                        className={`shrink-0 flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold transition-all text-xs ${activeTab === 'dashboard'
+                            ? 'bg-blue-600 text-white shadow-md'
                             : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                             }`}
                     >
-                        <LayoutDashboard className="w-4 h-4" /> Overview
+                        <LayoutDashboard className="w-3.5 h-3.5" /> Overview
                     </button>
 
-                    <div className="relative flex-1 md:flex-none">
+                    <div className="relative shrink-0 flex items-center" ref={teamDropdownRef}>
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'team'
-                                ? 'bg-blue-600 text-white shadow-lg'
+                            className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold transition-all text-xs ${activeTab === 'team'
+                                ? 'bg-blue-600 text-white shadow-md'
                                 : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                                 }`}
                         >
-                            <Users className="w-4 h-4" />
-                            <span className="truncate max-w-[100px] md:max-w-none">
+                            <Users className="w-3.5 h-3.5" />
+                            <span className="truncate max-w-[120px]">
                                 {selectedMember ? selectedMember : "Team Member"}
                             </span>
                             <ChevronDown className={`w-3 h-3 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
 
                         {isDropdownOpen && (
-                            <div className="absolute top-[calc(100%+0.5rem)] left-0 w-full min-w-[224px] bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2">
+                            <div className="absolute top-[calc(100%+0.5rem)] left-0 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2">
                                 {teamMembers.map(member => (
                                     <button
                                         key={member.id}
                                         onClick={() => handleMemberSelect(member)}
-                                        className="px-4 py-3 text-left text-sm font-semibold text-slate-300 hover:bg-blue-600 hover:text-white transition-colors"
+                                        className="px-4 py-3 text-left text-xs font-semibold text-slate-300 hover:bg-blue-600 hover:text-white transition-colors"
                                     >
                                         {member.name}
                                     </button>
@@ -256,9 +263,9 @@ export default function App() {
                                 <div className="h-px bg-slate-800 my-1"></div>
                                 <button
                                     onClick={() => handleMemberSelect('NEW')}
-                                    className="px-4 py-3 text-left text-sm font-bold text-blue-400 hover:bg-blue-900/30 transition-colors flex items-center gap-2"
+                                    className="px-4 py-3 text-left text-xs font-bold text-blue-400 hover:bg-blue-900/30 transition-colors flex items-center gap-2"
                                 >
-                                    <UserPlus className="w-4 h-4" /> CREATE NEW
+                                    <UserPlus className="w-3.5 h-3.5" /> CREATE NEW
                                 </button>
                             </div>
                         )}
@@ -266,12 +273,12 @@ export default function App() {
 
                     <button
                         onClick={() => setActiveTab('calendar')}
-                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all text-sm ${activeTab === 'calendar'
-                            ? 'bg-blue-600 text-white shadow-lg'
+                        className={`shrink-0 flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold transition-all text-xs ${activeTab === 'calendar'
+                            ? 'bg-blue-600 text-white shadow-md'
                             : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                             }`}
                     >
-                        <CalendarDays className="w-4 h-4" /> Calendar
+                        <CalendarDays className="w-3.5 h-3.5" /> Calendar
                     </button>
 
                     {/* View: Deleted / Trash (Temporarily Hidden)
@@ -467,54 +474,56 @@ export default function App() {
                 {activeTab === 'dashboard' && (
                     <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <div className="flex w-full gap-2 md:gap-4 overflow-hidden">
-                            <StatCard label="Critical (P1)" value={stats.p1} icon={Zap} color="text-red-500" bgColor="bg-red-500/10" valueColor="text-slate-400" onClick={() => setModalFilter('P1')} />
-                            <StatCard label="Priority 2 (P2)" value={stats.p2} icon={Calendar} color="text-orange-500" bgColor="bg-orange-500/10" valueColor="text-slate-400" onClick={() => setModalFilter('P2')} />
-                            <StatCard label="Priority 3 (P3)" value={stats.p3} icon={Calendar} color="text-yellow-500" bgColor="bg-yellow-500/10" valueColor="text-slate-400" onClick={() => setModalFilter('P3')} />
+                            <StatCard label="P1 (HIGH)" value={stats.p1} icon={Zap} color="text-red-500" bgColor="bg-red-500/10" valueColor="text-slate-400" onClick={() => setModalFilter('P1')} />
+                            <StatCard label="P2 (NORMAL)" value={stats.p2} icon={Calendar} color="text-orange-500" bgColor="bg-orange-500/10" valueColor="text-slate-400" onClick={() => setModalFilter('P2')} />
+                            <StatCard label="P3 (LOW)" value={stats.p3} icon={Calendar} color="text-yellow-500" bgColor="bg-yellow-500/10" valueColor="text-slate-400" onClick={() => setModalFilter('P3')} />
                             <StatCard label="Backburner" value={stats.backburner} icon={Coffee} color="text-slate-400" bgColor="bg-slate-400/10" onClick={() => setModalFilter('Backburner')} />
                             <StatCard label="COMPLETED (7d)" value={stats.completed} icon={CheckCircle2} color="text-emerald-500" bgColor="bg-emerald-500/10" onClick={() => setModalFilter('Completed')} />
                         </div>
 
-                        {/* All Tasks Rolldown Toggle */}
-                        <button
-                            onClick={() => setShowAllTasksBoard(!showAllTasksBoard)}
-                            className="w-full glass py-4 rounded-[2rem] flex items-center justify-center gap-3 text-slate-300 font-bold hover:bg-slate-800/80 hover:text-white transition-all group mt-2 border border-slate-700/50 hover:border-blue-500/30 shadow-lg"
-                        >
-                            <span className="tracking-widest uppercase text-sm">
-                                {showAllTasksBoard ? '- Hide All Tasks' : '+ View All Tasks'}
-                            </span>
-                        </button>
+                        {/* Unified All Tasks / Production Board Container */}
+                        <div className={`glass w-full mt-2 transition-all duration-500 overflow-hidden border border-slate-700/50 shadow-lg ${showAllTasksBoard ? 'rounded-[2.5rem] shadow-2xl pb-8' : 'rounded-[2rem]'}`}>
 
-                        {/* All Tasks Rolldown Board */}
-                        {showAllTasksBoard && (
-                            <div className="glass p-8 rounded-[2.5rem] mt-2 animate-in slide-in-from-top-4 fade-in duration-500 border border-slate-700/50 shadow-2xl">
-                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-white/5 pb-6">
-                                    <div>
-                                        <h2 className="text-4xl font-black text-white uppercase tracking-tighter">Production Board</h2>
+                            {/* Header Toggle Button */}
+                            <button
+                                onClick={() => setShowAllTasksBoard(!showAllTasksBoard)}
+                                className={`w-full flex items-center justify-between px-8 transition-all group hover:bg-slate-800/50 ${showAllTasksBoard ? 'py-6 border-b border-white/5' : 'py-4'}`}
+                            >
+                                <span className={`uppercase transition-all ${showAllTasksBoard ? 'text-lg md:text-xl font-light tracking-[0.3em] text-slate-300' : 'text-xs md:text-sm font-medium tracking-widest text-slate-500 group-hover:text-slate-300'}`}>
+                                    {showAllTasksBoard ? 'VIEW ALL TASKS' : 'VIEW ALL TASKS'}
+                                </span>
+                                <ChevronDown className={`w-5 h-5 transition-transform duration-500 text-slate-500 group-hover:text-slate-300 ${showAllTasksBoard ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {/* Board Content */}
+                            {showAllTasksBoard && (
+                                <div className="px-8 pt-8 animate-in fade-in duration-500">
+                                    <div className="flex flex-col md:flex-row justify-end items-center mb-8 gap-4">
+                                        <div className="flex items-center gap-2 w-full md:w-auto">
+                                            <span className="text-slate-500 text-xs font-bold uppercase tracking-widest hidden md:inline-block">Filter Category:</span>
+                                            <select
+                                                value={allTasksCategoryFilter}
+                                                onChange={(e) => setAllTasksCategoryFilter(e.target.value)}
+                                                className="bg-slate-800/80 border border-slate-700 text-slate-300 text-xs font-bold rounded-xl px-4 py-2 outline-none cursor-pointer hover:bg-slate-700 transition-colors w-full md:w-auto shadow-inner"
+                                            >
+                                                <option value="All">All Categories</option>
+                                                {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-2 w-full md:w-auto">
-                                        <span className="text-slate-500 text-xs font-bold uppercase tracking-widest hidden md:inline-block">Filter Category:</span>
-                                        <select
-                                            value={allTasksCategoryFilter}
-                                            onChange={(e) => setAllTasksCategoryFilter(e.target.value)}
-                                            className="bg-slate-800/80 border border-slate-700 text-slate-300 text-xs font-bold rounded-xl px-4 py-2 outline-none cursor-pointer hover:bg-slate-700 transition-colors w-full md:w-auto shadow-inner"
-                                        >
-                                            <option value="All">All Categories</option>
-                                            {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                                        </select>
-                                    </div>
+                                    <AllTasksBoard tasks={tasks} categoryFilter={allTasksCategoryFilter} updateTask={updateTask} categories={categories} addCategory={addCategory} deleteCategory={deleteCategory} deleteTask={deleteTask} />
                                 </div>
-                                <AllTasksBoard tasks={tasks} categoryFilter={allTasksCategoryFilter} updateTask={updateTask} categories={categories} addCategory={addCategory} deleteCategory={deleteCategory} deleteTask={deleteTask} />
-                            </div>
-                        )}
+                            )}
+                        </div>
 
-                        <div className="col-span-full glass p-8 rounded-[2.5rem] mt-4">
-                            <h3 className="text-xl font-bold mb-4">Active Team Roster</h3>
-                            <div className="flex flex-wrap gap-3">
+                        <div className="col-span-full glass p-4 md:p-5 rounded-2xl mt-4 border border-slate-700/50">
+                            <h3 className="text-sm font-bold tracking-wide text-slate-400 mb-3 uppercase">Active Team Roster</h3>
+                            <div className="flex flex-wrap gap-2">
                                 {teamMembers.length === 0 ? (
-                                    <span className="text-slate-500 italic">No team members initialized. Select "Team Member &gt; NEW" to begin.</span>
+                                    <span className="text-slate-500 italic text-xs">No team members initialized. Select "Team Member &gt; NEW" to begin.</span>
                                 ) : (
                                     teamMembers.map(m => (
-                                        <div key={m.id} onClick={() => handleMemberSelect(m)} className="cursor-pointer hover:bg-slate-700 bg-slate-800/50 border border-slate-700 px-4 py-2 rounded-lg text-sm font-mono text-blue-300 transition-colors">
+                                        <div key={m.id} onClick={() => handleMemberSelect(m)} className="cursor-pointer hover:bg-slate-700 bg-slate-800/50 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-mono text-blue-300 transition-colors shadow-sm">
                                             {m.name}
                                         </div>
                                     ))
@@ -527,26 +536,26 @@ export default function App() {
                 {/* View: Team Member (Active Sprint) */}
                 {activeTab === 'team' && selectedMember && (
                     <div className="animate-in fade-in zoom-in-95 duration-500">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 px-4 gap-4">
-                            <div>
+                        <div className="flex flex-row justify-between items-center mb-6 px-2 md:px-4 gap-2">
+                            <div className="min-w-0 pr-2">
                                 <div className="text-blue-500 text-[10px] uppercase font-black tracking-widest mb-1">Active Sprint</div>
-                                <div className="flex items-center gap-4">
-                                    <h2 className="text-3xl font-black text-white">{selectedMember}</h2>
-                                    <div className="flex gap-2">
-                                        <button onClick={handleRenameMember} className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors">
-                                            <Pencil className="w-4 h-4" />
+                                <div className="flex items-center gap-2 md:gap-4 flex-wrap">
+                                    <h2 className="text-2xl md:text-3xl font-black text-white truncate">{selectedMember}</h2>
+                                    <div className="flex gap-1 md:gap-2 shrink-0">
+                                        <button onClick={handleRenameMember} className="p-1 md:p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors">
+                                            <Pencil className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                         </button>
-                                        <button onClick={handleDeleteMember} className="p-1.5 bg-slate-800 hover:bg-red-900/50 rounded-lg text-slate-400 hover:text-red-400 transition-colors">
-                                            <Trash2 className="w-4 h-4" />
+                                        <button onClick={handleDeleteMember} className="p-1 md:p-1.5 bg-slate-800 hover:bg-red-900/50 rounded-lg text-slate-400 hover:text-red-400 transition-colors">
+                                            <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                         </button>
                                     </div>
                                 </div>
                             </div>
                             <button
                                 onClick={() => addTask(selectedMember)}
-                                className="bg-blue-600 hover:bg-blue-500 flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all active:scale-95 shadow-xl shadow-blue-900/20 group whitespace-nowrap"
+                                className="shrink-0 bg-blue-600 hover:bg-blue-500 flex items-center justify-center gap-1.5 md:gap-2 px-3 py-2 md:px-6 md:py-3 rounded-lg md:rounded-xl font-bold transition-all active:scale-95 shadow-xl shadow-blue-900/20 group whitespace-nowrap text-xs md:text-sm"
                             >
-                                <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> Add Action
+                                <Plus className="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-90 transition-transform" /> Add Action
                             </button>
                         </div>
 
@@ -711,7 +720,9 @@ export default function App() {
                                             <th className="px-4 py-4 font-bold">Team</th>
                                             <th className="px-4 py-4 font-bold">Action Item</th>
                                             <th className="px-4 py-4 font-bold">Category</th>
-                                            <th className="px-4 py-4 font-bold">Due By</th>
+                                            {modalFilter !== 'Completed' && (
+                                                <th className="px-4 py-4 font-bold">Due By</th>
+                                            )}
                                             <th className="px-4 py-4 font-bold">Done</th>
                                             <th className="px-4 py-4 font-bold">Submitted On</th>
                                         </tr>
@@ -730,10 +741,12 @@ export default function App() {
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="px-4 py-4 text-xs font-bold text-slate-400">
-                                                    {task.due_by_type}
-                                                    {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && <span className="text-red-500 ml-2">(Overdue)</span>}
-                                                </td>
+                                                {modalFilter !== 'Completed' && (
+                                                    <td className="px-4 py-4 text-xs font-bold text-slate-400">
+                                                        {task.due_by_type}
+                                                        {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && <span className="text-red-500 ml-2">(Overdue)</span>}
+                                                    </td>
+                                                )}
                                                 <td className="px-4 py-4">
                                                     <input
                                                         type="checkbox"
@@ -1281,7 +1294,12 @@ function AllTasksBoard({ tasks, categoryFilter, updateTask, categories, addCateg
     const activeTask = activeId ? tasks.find(t => t.id === activeId) : null;
 
     const sensors = useSensors(
-        useSensor(PointerSensor)
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                delay: 200, // 200ms delay to prevent accidental dragging on scroll
+                tolerance: 5, // 5px movement tolerance before cancel
+            },
+        })
     );
 
     // Helper to filter tasks by priority/status and currently selected category
@@ -1323,9 +1341,9 @@ function AllTasksBoard({ tasks, categoryFilter, updateTask, categories, addCateg
     };
 
     const columns = [
-        { id: 'P1', title: 'P1 (Critical)', colorClass: 'text-red-500', bgClass: 'bg-red-500/10', borderClass: 'border-red-500/20', activeBorderClass: 'border-red-400 ring-2 ring-red-500 shadow-[inset_0_0_20px_rgba(239,68,68,0.2)]', newPriority: 'P1', newDueBy: 'Today' },
-        { id: 'P2', title: 'P2 (High)', colorClass: 'text-orange-500', bgClass: 'bg-orange-500/10', borderClass: 'border-orange-500/20', activeBorderClass: 'border-orange-400 ring-2 ring-orange-500 shadow-[inset_0_0_20px_rgba(249,115,22,0.2)]', newPriority: 'P2', newDueBy: 'This Week' },
-        { id: 'P3', title: 'P3 (Normal)', colorClass: 'text-yellow-500', bgClass: 'bg-yellow-500/10', borderClass: 'border-yellow-500/20', activeBorderClass: 'border-yellow-400 ring-2 ring-yellow-500 shadow-[inset_0_0_20px_rgba(234,179,8,0.2)]', newPriority: 'P3', newDueBy: 'This Month' },
+        { id: 'P1', title: 'P1 (HIGH)', colorClass: 'text-red-500', bgClass: 'bg-red-500/10', borderClass: 'border-red-500/20', activeBorderClass: 'border-red-400 ring-2 ring-red-500 shadow-[inset_0_0_20px_rgba(239,68,68,0.2)]', newPriority: 'P1', newDueBy: 'Today' },
+        { id: 'P2', title: 'P2 (NORMAL)', colorClass: 'text-orange-500', bgClass: 'bg-orange-500/10', borderClass: 'border-orange-500/20', activeBorderClass: 'border-orange-400 ring-2 ring-orange-500 shadow-[inset_0_0_20px_rgba(249,115,22,0.2)]', newPriority: 'P2', newDueBy: 'This Week' },
+        { id: 'P3', title: 'P3 (LOW)', colorClass: 'text-yellow-500', bgClass: 'bg-yellow-500/10', borderClass: 'border-yellow-500/20', activeBorderClass: 'border-yellow-400 ring-2 ring-yellow-500 shadow-[inset_0_0_20px_rgba(234,179,8,0.2)]', newPriority: 'P3', newDueBy: 'This Month' },
         { id: 'Backburner', title: 'Backburner', colorClass: 'text-slate-400', bgClass: 'bg-slate-500/10', borderClass: 'border-slate-500/20', activeBorderClass: 'border-slate-300 ring-2 ring-slate-400 shadow-[inset_0_0_20px_rgba(148,163,184,0.2)]', newPriority: 'Backburner', newDueBy: 'Backburner' },
         { id: 'Completed', title: 'Done (7 Days)', colorClass: 'text-emerald-500', bgClass: 'bg-emerald-500/10', borderClass: 'border-emerald-500/20', activeBorderClass: 'border-emerald-400 ring-2 ring-emerald-500 shadow-[inset_0_0_20px_rgba(16,185,129,0.2)]', isDone: true },
     ];
@@ -1365,9 +1383,14 @@ function AllTasksBoard({ tasks, categoryFilter, updateTask, categories, addCateg
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
         >
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-flow-col md:auto-cols-fr gap-2 md:gap-4 w-full">
                 {columns.map(col => {
                     const colTasks = getTasksByBucket(col.id);
+                    // Hide column if it's empty, NOT the 'Completed' column, and we aren't dragging a task
+                    const isDragging = activeTask !== null;
+                    if (colTasks.length === 0 && col.id !== 'Completed' && !isDragging) {
+                        return null;
+                    }
                     return (
                         <DroppableColumn key={col.id} id={col.id} {...col} tasks={colTasks}>
                             {colTasks.length === 0 ? (
