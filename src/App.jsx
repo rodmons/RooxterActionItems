@@ -219,7 +219,7 @@ export default function App() {
 
             {/* SLIDING SIDEBAR OVERLAY */}
             <div
-                className={`fixed top-0 right-0 h-full w-16 md:w-20 bg-[#2b2b36] border-l border-[#1a1a24] shadow-2xl z-[90] flex flex-col items-center pt-20 pb-6 gap-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
+                className={`fixed top-0 right-0 h-full w-16 md:w-20 bg-slate-900/40 backdrop-blur-md border-l border-slate-700/50 shadow-2xl z-[90] flex flex-col items-center pt-20 pb-6 gap-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
             >
                 <button
                     onClick={() => alert("Profile Setting is under construction")}
@@ -237,6 +237,19 @@ export default function App() {
                 >
                     <Settings className="w-5 h-5 transition-transform group-hover:rotate-45" />
                 </button>
+
+                {/* BOTTOM AVATARS */}
+                <div className="mt-auto flex flex-col items-center gap-4">
+                    <button className="w-10 h-10 md:w-12 md:h-12 rounded-2xl overflow-hidden border-2 border-slate-700 hover:border-slate-500 transition-colors shadow-lg group">
+                        <img src={`${import.meta.env.BASE_URL}avatars/RooxterFilms_Avatar.jpg`} alt="RooxterFilms" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                    </button>
+
+                    <button className="w-10 h-10 md:w-12 md:h-12 rounded-2xl overflow-hidden border-2 border-slate-700 hover:border-slate-500 transition-colors shadow-lg group">
+                        <img src={`${import.meta.env.BASE_URL}avatars/TumbleTech_Avatar.jpg`} alt="TumbleTech" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                    </button>
+
+                    <Plus className="w-6 h-6 text-slate-500 hover:text-white transition-colors cursor-pointer mt-2" />
+                </div>
             </div>
 
             <div className="max-w-7xl mx-auto relative pl-0 lg:pl-4 transition-transform duration-500">
