@@ -269,35 +269,35 @@ export default function App() {
                 </header>
 
                 {/* Global Navigation and Add Task Button Wrapper */}
-                <div className="flex flex-nowrap items-center gap-2 mb-6 md:mb-8 w-full md:w-auto pb-1 md:pb-0 relative z-40">
-                    <nav className="flex flex-nowrap items-center justify-between md:justify-start gap-1 md:gap-2 bg-slate-900/40 backdrop-blur-md border border-slate-800/50 p-1 rounded-2xl shrink-0 relative z-30">
+                <div className="flex flex-nowrap items-center gap-1.5 md:gap-2 mb-6 md:mb-8 w-full md:w-auto pb-1 md:pb-0 relative z-40">
+                    <nav className="flex flex-nowrap items-center justify-between md:justify-start gap-1 md:gap-2 bg-slate-900/40 backdrop-blur-md border border-slate-800/50 p-1 rounded-2xl relative z-30 min-w-0 flex-1 md:flex-none">
                         <button
                             onClick={() => setActiveTab('dashboard')}
-                            className={`flex items-center justify-center gap-1.5 md:gap-2 px-2 md:px-4 py-2 rounded-xl font-bold transition-all text-[10px] md:text-xs min-w-0 ${activeTab === 'dashboard'
+                            className={`flex items-center justify-center gap-1.5 md:gap-2 px-1.5 md:px-4 py-2 rounded-xl font-bold transition-all text-[10px] md:text-xs min-w-0 ${activeTab === 'dashboard'
                                 ? 'bg-blue-600 text-white shadow-md'
                                 : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                                 }`}
                         >
-                            <LayoutDashboard className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">Overview</span>
+                            <LayoutDashboard className="w-3.5 h-3.5 shrink-0" /> <span className="truncate hidden sm:inline-block">Overview</span><span className="truncate sm:hidden">Home</span>
                         </button>
 
                         <div className="relative flex items-center min-w-0" ref={teamDropdownRef}>
                             <button
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className={`flex items-center justify-center gap-1.5 md:gap-2 px-2 md:px-4 py-2 rounded-xl font-bold transition-all text-[10px] md:text-xs w-full ${activeTab === 'team'
+                                className={`flex items-center justify-center gap-1.5 md:gap-2 px-1.5 md:px-4 py-2 rounded-xl font-bold transition-all text-[10px] md:text-xs w-full min-w-0 ${activeTab === 'team'
                                     ? 'bg-blue-600 text-white shadow-md'
                                     : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                                     }`}
                             >
                                 <Users className="w-3.5 h-3.5 shrink-0" />
-                                <span className="truncate max-w-[70px] md:max-w-[120px]">
-                                    {(activeTab === 'team' && selectedMember) ? selectedMember : "Team Member"}
+                                <span className="truncate max-w-[60px] md:max-w-[120px]">
+                                    {(activeTab === 'team' && selectedMember) ? selectedMember : "Team"}
                                 </span>
                                 <ChevronDown className={`w-3 h-3 shrink-0 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                             </button>
 
                             {isDropdownOpen && (
-                                <div className="absolute top-[calc(100%+0.5rem)] left-0 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2">
+                                <div className="absolute top-[calc(100%+0.5rem)] left-0 md:left-auto md:right-0 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2">
                                     {teamMembers.map(member => (
                                         <button
                                             key={member.id}
@@ -320,7 +320,7 @@ export default function App() {
 
                         <button
                             onClick={() => setActiveTab('calendar')}
-                            className={`flex items-center justify-center gap-1.5 md:gap-2 px-2 md:px-4 py-2 rounded-xl font-bold transition-all text-[10px] md:text-xs min-w-0 ${activeTab === 'calendar'
+                            className={`flex items-center justify-center gap-1.5 md:gap-2 px-1.5 md:px-4 py-2 rounded-xl font-bold transition-all text-[10px] md:text-xs min-w-0 ${activeTab === 'calendar'
                                 ? 'bg-blue-600 text-white shadow-md'
                                 : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                                 }`}
@@ -331,9 +331,9 @@ export default function App() {
 
                     <button
                         onClick={() => setIsGlobalAddTaskOpen(true)}
-                        className="shrink-0 flex items-center justify-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2.5 rounded-xl font-bold transition-all text-[10px] md:text-xs text-slate-400 hover:text-white border border-slate-700/50 hover:bg-slate-800/50 whitespace-nowrap active:scale-95"
+                        className="flex items-center justify-center gap-1.5 md:gap-2 px-2 py-2 md:px-4 md:py-2.5 rounded-xl font-bold transition-all text-[10px] md:text-xs text-slate-400 hover:text-white border border-slate-700/50 hover:bg-slate-800/50 whitespace-nowrap active:scale-95 min-w-0 flex-shrink"
                     >
-                        Add Task
+                        <span className="truncate">Add Task</span>
                     </button>
                 </div>
 
