@@ -21,7 +21,10 @@ import {
     ChevronLeft,
     ChevronRight,
     Globe,
-    List
+    List,
+    User,
+    Settings,
+    Minus
 } from 'lucide-react';
 import { useTasks } from './hooks/useTasks';
 import { STATUS_OPTIONS, DUE_BY_OPTIONS } from './constants';
@@ -70,6 +73,7 @@ export default function App() {
     const [allTasksCategoryFilter, setAllTasksCategoryFilter] = useState('All');
     const [selectedDateTasks, setSelectedDateTasks] = useState(null);
     const [calendarMode, setCalendarMode] = useState('week'); // 'month' or 'week'
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const teamDropdownRef = React.useRef(null);
 
     // Close Team Member dropdown on outside click
@@ -201,14 +205,52 @@ export default function App() {
 
     return (
         <div className="min-h-screen bg-black text-slate-50 p-4 md:p-8 font-sans antialiased selection:bg-blue-500/30">
-            <div className="max-w-7xl mx-auto relative">
+            {/* FLOATING SIDEBAR TOGGLE */}
+            <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="fixed top-6 right-3 md:right-4 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center z-[100] bg-slate-800/80 hover:bg-slate-700 backdrop-blur-md border border-slate-700 rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 group"
+            >
+                {isSidebarOpen ? (
+                    <Minus className="w-5 h-5 text-slate-300 group-hover:text-white" />
+                ) : (
+                    <Plus className="w-5 h-5 text-slate-300 group-hover:text-white" />
+                )}
+            </button>
+
+            {/* SLIDING SIDEBAR OVERLAY */}
+            <div
+                className={`fixed top-0 right-0 h-full w-16 md:w-20 bg-[#2b2b36] border-l border-[#1a1a24] shadow-2xl z-[90] flex flex-col items-center pt-20 pb-6 gap-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
+            >
+                <button
+                    onClick={() => alert("Profile Setting is under construction")}
+                    className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-2xl transition-all hover:scale-110 shadow-lg group relative"
+                    title="User Profile"
+                >
+                    <User className="w-5 h-5" />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 md:w-2.5 md:h-2.5 bg-emerald-500 border border-[#2b2b36] rounded-full"></div>
+                </button>
+
+                <button
+                    onClick={() => alert("Admin Tools is under construction")}
+                    className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-slate-800/50 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 rounded-2xl transition-all hover:scale-110 group"
+                    title="Settings"
+                >
+                    <Settings className="w-5 h-5 transition-transform group-hover:rotate-45" />
+                </button>
+            </div>
+
+            <div className="max-w-7xl mx-auto relative pl-0 lg:pl-4 transition-transform duration-500">
 
                 {/* Header Section */}
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 md:mb-4 gap-6">
-                    <div className="flex flex-col items-end w-fit">
+                    <div className="flex flex-col items-start w-fit">
                         <h1 className="text-3xl md:text-4xl font-extralight tracking-widest text-slate-200">
                             TASKKER.IO
                         </h1>
+                        <div className="flex items-center gap-3 mt-2">
+                            <img src={`${import.meta.env.BASE_URL}avatars/RooxterFilms_Avatar.jpg`} alt="Team Avatar" className="w-8 h-8 md:w-10 md:h-10 object-cover rounded-xl border-2 border-slate-600 shadow-sm" />
+                            <span className="text-slate-300 font-light tracking-widest uppercase text-xs md:text-sm">TEAM ROOXTER</span>
+                        </div>
                     </div>
                 </header>
 
@@ -658,175 +700,179 @@ export default function App() {
             </div>
 
             {/* MODAL OVERLAY */}
-            {modalFilter && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setModalFilter(null)}></div>
-                    <div className="relative glass w-full max-w-4xl rounded-[2.5rem] border border-white/10 p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+            {
+                modalFilter && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setModalFilter(null)}></div>
+                        <div className="relative glass w-full max-w-4xl rounded-[2.5rem] border border-white/10 p-8 shadow-2xl animate-in zoom-in-95 duration-200">
 
-                        {/* Action Corner: Toggles and Close */}
-                        <div className="absolute top-6 right-6 flex items-center gap-3 z-10">
-                            {(modalFilter === 'Completed' || modalFilter === 'Archive') && (
+                            {/* Action Corner: Toggles and Close */}
+                            <div className="absolute top-6 right-6 flex items-center gap-3 z-10">
+                                {(modalFilter === 'Completed' || modalFilter === 'Archive') && (
+                                    <button
+                                        onClick={() => setModalFilter(modalFilter === 'Completed' ? 'Archive' : 'Completed')}
+                                        className="flex items-center gap-2 px-4 py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-all border border-slate-700"
+                                    >
+                                        <Archive className="w-4 h-4" />
+                                        {modalFilter === 'Completed' ? 'ARCHIVE' : '7 DAYS COMPLETED'}
+                                    </button>
+                                )}
                                 <button
-                                    onClick={() => setModalFilter(modalFilter === 'Completed' ? 'Archive' : 'Completed')}
-                                    className="flex items-center gap-2 px-4 py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-all border border-slate-700"
+                                    onClick={() => setModalFilter(null)}
+                                    className="p-2 bg-slate-800/50 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors"
                                 >
-                                    <Archive className="w-4 h-4" />
-                                    {modalFilter === 'Completed' ? 'ARCHIVE' : '7 DAYS COMPLETED'}
+                                    <X className="w-5 h-5" />
                                 </button>
-                            )}
+                            </div>
+
+                            <h2 className="text-2xl font-black mb-6 text-white tracking-widest uppercase flex items-center gap-3">
+                                {modalFilter === 'Completed' ? 'COMPLETED TASKS (7 days)' : modalFilter === 'Archive' ? 'SYSTEM ARCHIVE' : `${modalFilter} Tasks`}
+                                <span className={`${modalFilter === 'Completed' ? 'bg-emerald-500' : modalFilter === 'Archive' ? 'bg-slate-600' : 'bg-blue-600'} text-white text-xs px-3 py-1 rounded-full`}>
+                                    {getModalTasks().length}
+                                </span>
+                            </h2>
+
+                            <div className="overflow-x-auto no-scrollbar max-h-[60vh]">
+                                {modalFilter === 'Archive' ? (
+                                    <div className="text-left w-full mx-auto pb-4">
+                                        {getModalTasks().map(task => (
+                                            <div key={task.id} className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0 group transition-colors hover:bg-slate-800/30 px-4 -mx-4 rounded-xl w-full overflow-hidden">
+                                                <div className="flex items-center flex-1 min-w-0 pr-8">
+                                                    <span className="text-slate-500 text-sm font-bold shrink-0 w-20">{task.assignee}</span>
+                                                    <span className="text-slate-300 text-xs font-light truncate shrink">{task.action}</span>
+                                                </div>
+                                                <div className="flex items-center justify-end gap-12 shrink-0 text-slate-500 text-sm font-bold mr-4 w-[350px]">
+                                                    <span className="flex-1 text-right">{task.category || ' '}</span>
+                                                    <span className="shrink-0 w-[100px] text-right">{formatDate(task.date || task.created_at)}</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => { if (confirm("Are you sure you want to PERMANENTLY delete this archived item? This cannot be undone.")) permanentlyDeleteTask(task.id); }}
+                                                    className="opacity-0 group-hover:opacity-100 p-2 text-slate-600 hover:text-red-500 transition-all transform hover:scale-110 shrink-0"
+                                                    title="Permanently Delete"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        {getModalTasks().length === 0 && (
+                                            <div className="text-slate-600 italic text-center py-12">Archive empty.</div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="bg-slate-900/30 border-b border-white/5 text-slate-500 text-[10px] uppercase tracking-[0.2em] sticky top-0 backdrop-blur-md z-10">
+                                                <th className="px-4 py-4 font-bold">Team</th>
+                                                <th className="px-4 py-4 font-bold">Action Item</th>
+                                                <th className="px-4 py-4 font-bold">Category</th>
+                                                {modalFilter !== 'Completed' && (
+                                                    <th className="px-4 py-4 font-bold">Due By</th>
+                                                )}
+                                                <th className="px-4 py-4 font-bold">Done</th>
+                                                <th className="px-4 py-4 font-bold">Submitted On</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                            {getModalTasks().map(task => (
+                                                <tr key={task.id} className="hover:bg-slate-800/50 transition-colors group">
+                                                    <td className="px-4 py-4 text-sm font-bold text-blue-300">{task.assignee}</td>
+                                                    <td className={`px-4 py-4 text-sm font-semibold ${task.status === 'Done' ? 'text-slate-500' : 'text-slate-200'}`}>
+                                                        {task.action}
+                                                    </td>
+                                                    <td className="px-4 py-4">
+                                                        {task.category && (
+                                                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider bg-slate-900/20 px-2 py-1 rounded-md border border-slate-500/20 truncate max-w-[120px] inline-block whitespace-nowrap">
+                                                                {task.category}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    {modalFilter !== 'Completed' && (
+                                                        <td className="px-4 py-4 text-xs font-bold text-slate-400">
+                                                            {task.due_by_type}
+                                                            {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && <span className="text-red-500 ml-2">(Overdue)</span>}
+                                                        </td>
+                                                    )}
+                                                    <td className="px-4 py-4">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={task.status === 'Done'}
+                                                            onChange={(e) => updateTask(task.id, 'status', e.target.checked ? 'Done' : 'To Do')}
+                                                            className="w-5 h-5 rounded border-slate-600 accent-emerald-500 focus:ring-emerald-500 bg-slate-900 cursor-pointer"
+                                                        />
+                                                    </td>
+                                                    <td className="px-4 py-4 text-xs font-mono text-slate-500 flex justify-between items-center">
+                                                        {formatDate(task.submitted_on || task.created_at)}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {getModalTasks().length === 0 && (
+                                                <tr>
+                                                    <td colSpan="5" className="px-4 py-12 text-center text-slate-600 italic">No tasks found matching this filter.</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* CALENDAR DATE TASKS POPUP MODAL */}
+            {
+                selectedDateTasks && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedDateTasks(null)}></div>
+                        <div className="relative w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200">
                             <button
-                                onClick={() => setModalFilter(null)}
-                                className="p-2 bg-slate-800/50 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors"
+                                onClick={() => setSelectedDateTasks(null)}
+                                className="absolute -top-12 right-0 p-2 bg-slate-800/50 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors z-[70]"
                             >
                                 <X className="w-5 h-5" />
                             </button>
-                        </div>
 
-                        <h2 className="text-2xl font-black mb-6 text-white tracking-widest uppercase flex items-center gap-3">
-                            {modalFilter === 'Completed' ? 'COMPLETED TASKS (7 days)' : modalFilter === 'Archive' ? 'SYSTEM ARCHIVE' : `${modalFilter} Tasks`}
-                            <span className={`${modalFilter === 'Completed' ? 'bg-emerald-500' : modalFilter === 'Archive' ? 'bg-slate-600' : 'bg-blue-600'} text-white text-xs px-3 py-1 rounded-full`}>
-                                {getModalTasks().length}
-                            </span>
-                        </h2>
+                            <div className="mb-4 text-center">
+                                <h3 className="text-xl md:text-2xl font-black text-white tracking-widest uppercase">
+                                    Tasks for {selectedDateTasks.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </h3>
+                            </div>
 
-                        <div className="overflow-x-auto no-scrollbar max-h-[60vh]">
-                            {modalFilter === 'Archive' ? (
-                                <div className="text-left w-full mx-auto pb-4">
-                                    {getModalTasks().map(task => (
-                                        <div key={task.id} className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0 group transition-colors hover:bg-slate-800/30 px-4 -mx-4 rounded-xl w-full overflow-hidden">
-                                            <div className="flex items-center flex-1 min-w-0 pr-8">
-                                                <span className="text-slate-500 text-sm font-bold shrink-0 w-20">{task.assignee}</span>
-                                                <span className="text-slate-300 text-xs font-light truncate shrink">{task.action}</span>
-                                            </div>
-                                            <div className="flex items-center justify-end gap-12 shrink-0 text-slate-500 text-sm font-bold mr-4 w-[350px]">
-                                                <span className="flex-1 text-right">{task.category || ' '}</span>
-                                                <span className="shrink-0 w-[100px] text-right">{formatDate(task.date || task.created_at)}</span>
-                                            </div>
-                                            <button
-                                                onClick={() => { if (confirm("Are you sure you want to PERMANENTLY delete this archived item? This cannot be undone.")) permanentlyDeleteTask(task.id); }}
-                                                className="opacity-0 group-hover:opacity-100 p-2 text-slate-600 hover:text-red-500 transition-all transform hover:scale-110 shrink-0"
-                                                title="Permanently Delete"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                    {getModalTasks().length === 0 && (
-                                        <div className="text-slate-600 italic text-center py-12">Archive empty.</div>
-                                    )}
-                                </div>
-                            ) : (
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-slate-900/30 border-b border-white/5 text-slate-500 text-[10px] uppercase tracking-[0.2em] sticky top-0 backdrop-blur-md z-10">
-                                            <th className="px-4 py-4 font-bold">Team</th>
-                                            <th className="px-4 py-4 font-bold">Action Item</th>
-                                            <th className="px-4 py-4 font-bold">Category</th>
-                                            {modalFilter !== 'Completed' && (
-                                                <th className="px-4 py-4 font-bold">Due By</th>
-                                            )}
-                                            <th className="px-4 py-4 font-bold">Done</th>
-                                            <th className="px-4 py-4 font-bold">Submitted On</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/5">
-                                        {getModalTasks().map(task => (
-                                            <tr key={task.id} className="hover:bg-slate-800/50 transition-colors group">
-                                                <td className="px-4 py-4 text-sm font-bold text-blue-300">{task.assignee}</td>
-                                                <td className={`px-4 py-4 text-sm font-semibold ${task.status === 'Done' ? 'text-slate-500' : 'text-slate-200'}`}>
-                                                    {task.action}
-                                                </td>
-                                                <td className="px-4 py-4">
-                                                    {task.category && (
-                                                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider bg-slate-900/20 px-2 py-1 rounded-md border border-slate-500/20 truncate max-w-[120px] inline-block whitespace-nowrap">
-                                                            {task.category}
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                {modalFilter !== 'Completed' && (
-                                                    <td className="px-4 py-4 text-xs font-bold text-slate-400">
-                                                        {task.due_by_type}
-                                                        {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && <span className="text-red-500 ml-2">(Overdue)</span>}
-                                                    </td>
-                                                )}
-                                                <td className="px-4 py-4">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={task.status === 'Done'}
-                                                        onChange={(e) => updateTask(task.id, 'status', e.target.checked ? 'Done' : 'To Do')}
-                                                        className="w-5 h-5 rounded border-slate-600 accent-emerald-500 focus:ring-emerald-500 bg-slate-900 cursor-pointer"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-4 text-xs font-mono text-slate-500 flex justify-between items-center">
-                                                    {formatDate(task.submitted_on || task.created_at)}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {getModalTasks().length === 0 && (
-                                            <tr>
-                                                <td colSpan="5" className="px-4 py-12 text-center text-slate-600 italic">No tasks found matching this filter.</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            )}
+                            <div className="flex flex-col gap-4 max-h-[70vh] overflow-y-auto no-scrollbar pb-4 px-2">
+                                {selectedDateTasks.tasks.map(calendarTask => {
+                                    // Find the live task from state to ensure it updates when edited
+                                    const liveTask = tasks.find(t => t.id === calendarTask.id);
+                                    if (!liveTask) return null;
+                                    return (
+                                        <TaskCard
+                                            key={liveTask.id}
+                                            task={liveTask}
+                                            updateTask={updateTask}
+                                            categories={categories}
+                                            addCategory={addCategory}
+                                            deleteCategory={deleteCategory}
+                                            deleteTask={(id) => {
+                                                deleteTask(id);
+                                                // Handle closing the modal if no tasks are left
+                                                const remainingTasks = selectedDateTasks.tasks.filter(t => t.id !== id);
+                                                if (remainingTasks.length === 0) {
+                                                    setSelectedDateTasks(null);
+                                                } else {
+                                                    setSelectedDateTasks({
+                                                        ...selectedDateTasks,
+                                                        tasks: remainingTasks
+                                                    });
+                                                }
+                                            }}
+                                            showAssignee={true}
+                                        />
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* CALENDAR DATE TASKS POPUP MODAL */}
-            {selectedDateTasks && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedDateTasks(null)}></div>
-                    <div className="relative w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200">
-                        <button
-                            onClick={() => setSelectedDateTasks(null)}
-                            className="absolute -top-12 right-0 p-2 bg-slate-800/50 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors z-[70]"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-
-                        <div className="mb-4 text-center">
-                            <h3 className="text-xl md:text-2xl font-black text-white tracking-widest uppercase">
-                                Tasks for {selectedDateTasks.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </h3>
-                        </div>
-
-                        <div className="flex flex-col gap-4 max-h-[70vh] overflow-y-auto no-scrollbar pb-4 px-2">
-                            {selectedDateTasks.tasks.map(calendarTask => {
-                                // Find the live task from state to ensure it updates when edited
-                                const liveTask = tasks.find(t => t.id === calendarTask.id);
-                                if (!liveTask) return null;
-                                return (
-                                    <TaskCard
-                                        key={liveTask.id}
-                                        task={liveTask}
-                                        updateTask={updateTask}
-                                        categories={categories}
-                                        addCategory={addCategory}
-                                        deleteCategory={deleteCategory}
-                                        deleteTask={(id) => {
-                                            deleteTask(id);
-                                            // Handle closing the modal if no tasks are left
-                                            const remainingTasks = selectedDateTasks.tasks.filter(t => t.id !== id);
-                                            if (remainingTasks.length === 0) {
-                                                setSelectedDateTasks(null);
-                                            } else {
-                                                setSelectedDateTasks({
-                                                    ...selectedDateTasks,
-                                                    tasks: remainingTasks
-                                                });
-                                            }
-                                        }}
-                                        showAssignee={true}
-                                    />
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Styles Injection */}
             <style>{`
@@ -847,7 +893,7 @@ export default function App() {
             animation: fade-in 0.5s ease-out forwards;
         }
       `}</style>
-        </div>
+        </div >
     );
 }
 
