@@ -648,32 +648,31 @@ export default function App() {
                         <div className={`glass w-full mt-2 transition-all duration-500 overflow-hidden border border-slate-700/50 shadow-lg ${showAllTasksBoard ? 'rounded-[2.5rem] shadow-2xl pb-8' : 'rounded-[2rem]'}`}>
 
                             {/* Header Toggle Button */}
-                            <button
+                            <div
                                 onClick={() => setShowAllTasksBoard(!showAllTasksBoard)}
-                                className={`w-full flex items-center justify-between px-8 transition-all group hover:bg-slate-800/50 ${showAllTasksBoard ? 'py-6 border-b border-white/5' : 'py-4'}`}
+                                className={`w-full flex items-center justify-between px-8 transition-all hover:bg-slate-800/50 cursor-pointer group ${showAllTasksBoard ? 'py-4 border-b border-white/5' : 'py-4'}`}
                             >
-                                <span className={`uppercase transition-all ${showAllTasksBoard ? 'text-lg md:text-xl font-light tracking-[0.3em] text-slate-300' : 'text-xs md:text-sm font-medium tracking-widest text-slate-500 group-hover:text-slate-300'}`}>
+                                <span className={`uppercase transition-all ${showAllTasksBoard ? 'text-base md:text-lg font-light tracking-[0.3em] text-slate-300' : 'text-xs md:text-sm font-medium tracking-widest text-slate-500 group-hover:text-slate-300'}`}>
                                     {showAllTasksBoard ? 'VIEW ALL TASKS' : 'VIEW ALL TASKS'}
                                 </span>
-                                <ChevronDown className={`w-5 h-5 transition-transform duration-500 text-slate-500 group-hover:text-slate-300 ${showAllTasksBoard ? 'rotate-180' : ''}`} />
-                            </button>
+                                <div className="flex items-center gap-4">
+                                    <select
+                                        value={allTasksCategoryFilter}
+                                        onChange={(e) => setAllTasksCategoryFilter(e.target.value)}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onPointerDown={(e) => e.stopPropagation()}
+                                        className="bg-slate-800/80 border border-slate-700 text-slate-300 text-[10px] sm:text-xs font-bold rounded-xl px-2 py-1.5 sm:px-4 sm:py-2 outline-none cursor-pointer hover:bg-slate-700 transition-colors shadow-inner"
+                                    >
+                                        <option value="All">All Categories</option>
+                                        {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                    </select>
+                                    <ChevronDown className={`w-5 h-5 transition-transform duration-500 text-slate-500 group-hover:text-slate-300 ${showAllTasksBoard ? 'rotate-180' : ''}`} />
+                                </div>
+                            </div>
 
                             {/* Board Content */}
                             {showAllTasksBoard && (
-                                <div className="px-8 pt-8 animate-in fade-in duration-500">
-                                    <div className="flex flex-col md:flex-row justify-end items-center mb-8 gap-4">
-                                        <div className="flex items-center gap-2 w-full md:w-auto">
-                                            <span className="text-slate-500 text-xs font-bold uppercase tracking-widest hidden md:inline-block">Filter Category:</span>
-                                            <select
-                                                value={allTasksCategoryFilter}
-                                                onChange={(e) => setAllTasksCategoryFilter(e.target.value)}
-                                                className="bg-slate-800/80 border border-slate-700 text-slate-300 text-xs font-bold rounded-xl px-4 py-2 outline-none cursor-pointer hover:bg-slate-700 transition-colors w-full md:w-auto shadow-inner"
-                                            >
-                                                <option value="All">All Categories</option>
-                                                {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                                            </select>
-                                        </div>
-                                    </div>
+                                <div className="px-8 pt-4 pb-2 animate-in fade-in duration-500">
                                     <AllTasksBoard tasks={tasks} categoryFilter={allTasksCategoryFilter} updateTask={updateTask} categories={categories} addCategory={addCategory} deleteCategory={deleteCategory} deleteTask={deleteTask} />
                                 </div>
                             )}
@@ -742,11 +741,11 @@ export default function App() {
                                     <table className="w-full text-left border-collapse">
                                         <thead>
                                             <tr className="bg-slate-900/30 border-b border-white/5 text-slate-500 text-[10px] uppercase tracking-[0.2em]">
-                                                <th className="px-6 py-5 font-bold">Status</th>
-                                                <th className="px-6 py-5 font-bold">Action Item</th>
-                                                <th className="px-6 py-5 font-bold">Category</th>
-                                                <th className="px-6 py-5 font-bold">Due By</th>
-                                                <th className="px-6 py-5 font-bold text-center">Control</th>
+                                                <th className="px-4 py-3 font-bold whitespace-nowrap">Status</th>
+                                                <th className="px-4 py-3 font-bold whitespace-nowrap">Action Item</th>
+                                                <th className="px-4 py-3 font-bold whitespace-nowrap">Category</th>
+                                                <th className="px-4 py-3 font-bold whitespace-nowrap">Due By</th>
+                                                <th className="px-4 py-3 font-bold text-center whitespace-nowrap">Control</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/5">
@@ -1235,19 +1234,19 @@ function StatCard({ label, shortLabel, value, icon: Icon, color, bgColor, onClic
     return (
         <div
             onClick={onClick}
-            className={`flex-1 min-w-0 glass p-3 sm:p-4 md:p-6 rounded-xl md:rounded-[1.5rem] border border-transparent hover:border-slate-500/30 cursor-pointer transition-all group relative overflow-hidden flex flex-col justify-between`}
+            className={`flex-1 min-w-0 glass p-2 sm:p-3 md:p-4 rounded-xl border border-transparent hover:border-slate-500/30 cursor-pointer transition-all group relative overflow-hidden flex flex-col justify-between`}
             title={label}
         >
             <div className={`absolute -right-3 -bottom-3 sm:-right-4 sm:-bottom-4 opacity-10 md:opacity-20 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-12 pointer-events-none`}>
-                <Icon className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 ${color}`} strokeWidth={1.5} />
+                <Icon className={`w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 ${color}`} strokeWidth={1.5} />
             </div>
 
-            <div className="flex justify-between items-start mb-1 md:mb-4 relative z-10 w-full">
+            <div className="flex justify-between items-start mb-1 md:mb-2 relative z-10 w-full">
                 <span className={`hidden md:block text-[8px] sm:text-[9px] md:text-[10px] font-black uppercase tracking-[0.05em] md:tracking-[0.1em] truncate w-full pr-1 shrink leading-tight ${color}`}>{label}</span>
                 <span className={`md:hidden block text-[8px] sm:text-[9px] md:text-[10px] font-black uppercase tracking-[0.05em] md:tracking-[0.1em] truncate w-full pr-1 shrink leading-tight ${color}`}>{shortLabel || label}</span>
             </div>
 
-            <div className={`text-xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter relative z-10 truncate text-slate-200 mt-1 md:mt-2`}>
+            <div className={`text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tighter relative z-10 truncate text-slate-200 mt-0.5 md:mt-1`}>
                 {value}
             </div>
         </div>
@@ -1266,20 +1265,15 @@ function TaskRow({ task, updateTask, categories, addCategory, deleteCategory, de
 
     return (
         <tr className={`hover:bg-blue-600/[0.03] transition-colors group ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'bg-red-900/10' : ''}`}>
-            <td className="px-6 py-4">
-                <select
-                    value={task.status}
-                    onChange={(e) => updateTask(task.id, 'status', e.target.value)}
-                    className={`text-[10px] font-black uppercase px-3 py-1.5 rounded-full border border-opacity-30 bg-opacity-10 outline-none cursor-pointer transition-all ${task.status === 'Done' ? 'bg-emerald-500 text-emerald-400 border-emerald-500' :
-                        task.status === 'Blocked' ? 'bg-red-500 text-red-400 border-red-500' :
-                            task.status === 'In Progress' ? 'bg-blue-500 text-blue-400 border-blue-500' :
-                                'bg-slate-500 text-slate-400 border-slate-500'
-                        }`}
+            <td className="px-4 py-3 text-center">
+                <button
+                    onClick={() => updateTask(task.id, 'status', task.status === 'Done' ? 'In Progress' : 'Done')}
+                    className={`mx-auto w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${task.status === 'Done' ? 'bg-emerald-500 border-emerald-500' : 'border-slate-500 hover:border-blue-400'}`}
                 >
-                    {STATUS_OPTIONS.filter(o => o.value !== 'Deleted').map(opt => <option key={opt.value} value={opt.value} className="bg-slate-900">{opt.label}</option>)}
-                </select>
+                    {task.status === 'Done' && <CheckCircle2 className="w-3 h-3 text-slate-900" />}
+                </button>
             </td>
-            <td className="px-6 py-4 min-w-[250px] w-full max-w-sm relative">
+            <td className="px-4 py-3 min-w-[250px] w-full max-w-sm relative">
                 {/* BIG BACKGROUND OVERDUE TEXT */}
                 {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && (
                     <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden z-0">
@@ -1293,7 +1287,7 @@ function TaskRow({ task, updateTask, categories, addCategory, deleteCategory, de
                     ref={textareaRef}
                     value={task.action}
                     onChange={(e) => updateTask(task.id, 'action', e.target.value)}
-                    className="bg-transparent border-none outline-none w-full font-bold text-sm text-slate-200 focus:text-blue-400 transition-colors placeholder:text-slate-800 resize-none overflow-hidden block relative z-10"
+                    className={`bg-transparent border-none outline-none w-full font-bold text-sm focus:text-blue-400 transition-colors placeholder:text-slate-800 resize-none overflow-hidden block relative z-10 ${task.status === 'Done' ? 'text-slate-500' : 'text-slate-200'}`}
                     placeholder="Task description..."
                     rows={1}
                     onInput={(e) => {
@@ -1303,11 +1297,11 @@ function TaskRow({ task, updateTask, categories, addCategory, deleteCategory, de
                 />
             </td>
             {showAssignee && (
-                <td className="px-6 py-4 text-sm font-bold text-blue-300">
+                <td className="px-4 py-3 text-sm font-bold text-blue-300">
                     {task.assignee}
                 </td>
             )}
-            <td className="px-6 py-4 whitespace-nowrap">
+            <td className="px-4 py-3 whitespace-nowrap">
                 <CategoryDropdown
                     categories={categories}
                     value={task.category || ''}
@@ -1316,7 +1310,7 @@ function TaskRow({ task, updateTask, categories, addCategory, deleteCategory, de
                     onDelete={deleteCategory}
                 />
             </td>
-            <td className="px-6 py-4">
+            <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
                     <DueByDropdown
                         value={task.due_by_type || ''}
@@ -1325,7 +1319,7 @@ function TaskRow({ task, updateTask, categories, addCategory, deleteCategory, de
                     />
                 </div>
             </td>
-            <td className="px-6 py-4 text-center">
+            <td className="px-4 py-3 text-center">
                 <button
                     onClick={() => deleteTask(task.id)}
                     className="text-slate-800 hover:text-red-500 transition-all transform hover:scale-125 p-2"
@@ -1348,12 +1342,12 @@ function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, d
     }, [task.action]);
 
     return (
-        <div className={`bg-slate-800/40 p-4 rounded-2xl border ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'border-red-900/50 bg-red-900/10' : 'border-slate-700/50'} flex flex-col gap-4 relative shadow-lg`}>
+        <div className={`bg-slate-800/40 p-3 rounded-xl border ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'border-red-900/50 bg-red-900/10' : 'border-slate-700/50'} flex flex-col gap-2 relative shadow-sm`}>
 
             {/* BIG BACKGROUND OVERDUE TEXT */}
             {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && (
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-0 overflow-hidden rounded-2xl">
-                    <span className="text-red-500/10 font-black text-6xl tracking-[0.2em] uppercase -rotate-12 select-none whitespace-nowrap">
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-0 overflow-hidden rounded-xl">
+                    <span className="text-red-500/10 font-black text-5xl tracking-[0.2em] uppercase -rotate-12 select-none whitespace-nowrap">
                         OVERDUE!
                     </span>
                 </div>
@@ -1361,17 +1355,12 @@ function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, d
 
             {/* Top row: Status and Assignee */}
             <div className="flex justify-between items-start gap-2 relative z-10">
-                <select
-                    value={task.status}
-                    onChange={(e) => updateTask(task.id, 'status', e.target.value)}
-                    className={`text-[9px] font-black uppercase px-2 py-1 rounded-md border border-opacity-30 bg-opacity-10 outline-none cursor-pointer transition-all w-fit ${task.status === 'Done' ? 'bg-emerald-500 text-emerald-400 border-emerald-500' :
-                        task.status === 'Blocked' ? 'bg-red-500 text-red-400 border-red-500' :
-                            task.status === 'In Progress' ? 'bg-blue-500 text-blue-400 border-blue-500' :
-                                'bg-slate-500 text-slate-400 border-slate-500'
-                        }`}
+                <button
+                    onClick={() => updateTask(task.id, 'status', task.status === 'Done' ? 'In Progress' : 'Done')}
+                    className={`shrink-0 w-5 h-5 mt-0.5 rounded-full border-2 flex items-center justify-center transition-colors ${task.status === 'Done' ? 'bg-emerald-500 border-emerald-500' : 'border-slate-500 hover:border-blue-400'}`}
                 >
-                    {STATUS_OPTIONS.filter(o => o.value !== 'Deleted').map(opt => <option key={opt.value} value={opt.value} className="bg-slate-900">{opt.label}</option>)}
-                </select>
+                    {task.status === 'Done' && <CheckCircle2 className="w-3 h-3 text-slate-900" />}
+                </button>
 
                 <div className="flex items-center gap-2">
                     {showAssignee && (
@@ -1385,12 +1374,11 @@ function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, d
                 </div>
             </div>
 
-            {/* Action Item Input */}
             <textarea
                 ref={textareaRef}
                 value={task.action}
                 onChange={(e) => updateTask(task.id, 'action', e.target.value)}
-                className="bg-transparent border-none outline-none w-full font-bold text-sm text-white focus:text-blue-400 transition-colors placeholder:text-slate-600 resize-none overflow-hidden block relative z-10"
+                className={`bg-transparent border-none outline-none w-full font-bold text-sm focus:text-blue-400 transition-colors placeholder:text-slate-600 resize-none overflow-hidden block relative z-10 pt-1 ${task.status === 'Done' ? 'text-slate-500' : 'text-slate-200'}`}
                 placeholder="Task description..."
                 rows={1}
                 onInput={(e) => {
@@ -1400,7 +1388,7 @@ function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, d
             />
 
             {/* Bottom row: Category and Due By */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-700/50">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-slate-700/50">
                 <CategoryDropdown
                     categories={categories}
                     value={task.category || ''}
@@ -1441,7 +1429,7 @@ function DraggableTaskCard({ task, updateTask, categories, addCategory, deleteCa
             {...attributes}
             {...listeners}
         >
-            <div className={`bg-slate-800/60 p-3 rounded-xl border ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'border-red-900/50 bg-red-900/10' : 'border-slate-700/50 hover:border-slate-500/50'} transition-colors group flex flex-col gap-2 relative`}>
+            <div className={`bg-slate-800/60 p-2 rounded-xl border ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'border-red-900/50 bg-red-900/10' : 'border-slate-700/50 hover:border-slate-500/50'} transition-colors group flex flex-col gap-1.5 relative`}>
 
                 {/* BIG BACKGROUND OVERDUE TEXT */}
                 {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && (
@@ -1452,7 +1440,7 @@ function DraggableTaskCard({ task, updateTask, categories, addCategory, deleteCa
                     </div>
                 )}
 
-                <div className="flex items-start gap-3 relative z-10">
+                <div className="flex items-start gap-2 relative z-10">
                     <button
                         onPointerDown={(e) => e.stopPropagation()}
                         onClick={() => updateTask(task.id, 'status', task.status === 'Done' ? 'In Progress' : 'Done')}
