@@ -26,7 +26,8 @@ import {
     Settings,
     Minus,
     MoreHorizontal,
-    FileText
+    FileText,
+    AlertTriangle
 } from 'lucide-react';
 import { useTasks } from './hooks/useTasks';
 import { STATUS_OPTIONS, DUE_BY_OPTIONS } from './constants';
@@ -635,11 +636,11 @@ export default function App() {
                 {activeTab === 'dashboard' && (
                     <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <div className="flex w-full gap-2 md:gap-4 overflow-hidden">
-                            <StatCard label="P1 (HIGH)" value={stats.p1} icon={Zap} color="text-red-500" bgColor="bg-red-500/10" valueColor="text-slate-400" onClick={() => setModalFilter('P1')} />
-                            <StatCard label="P2 (NORMAL)" value={stats.p2} icon={Calendar} color="text-orange-500" bgColor="bg-orange-500/10" valueColor="text-slate-400" onClick={() => setModalFilter('P2')} />
-                            <StatCard label="P3 (LOW)" value={stats.p3} icon={Calendar} color="text-yellow-500" bgColor="bg-yellow-500/10" valueColor="text-slate-400" onClick={() => setModalFilter('P3')} />
-                            <StatCard label="Backburner" value={stats.backburner} icon={Coffee} color="text-slate-400" bgColor="bg-slate-400/10" onClick={() => setModalFilter('Backburner')} />
-                            <StatCard label="COMPLETED (7d)" value={stats.completed} icon={CheckCircle2} color="text-emerald-500" bgColor="bg-emerald-500/10" onClick={() => setModalFilter('Completed')} />
+                            <StatCard label="P1 (HIGH)" shortLabel="P1" value={stats.p1} icon={Zap} color="text-red-500" bgColor="bg-red-500/10" onClick={() => setModalFilter('P1')} />
+                            <StatCard label="P2 (NORMAL)" shortLabel="P2" value={stats.p2} icon={AlertTriangle} color="text-orange-500" bgColor="bg-orange-500/10" onClick={() => setModalFilter('P2')} />
+                            <StatCard label="P3 (LOW)" shortLabel="P3" value={stats.p3} icon={Calendar} color="text-yellow-500" bgColor="bg-yellow-500/10" onClick={() => setModalFilter('P3')} />
+                            <StatCard label="BACKBURNER" shortLabel="BACKBURNER" value={stats.backburner} icon={Coffee} color="text-slate-400" bgColor="bg-slate-400/10" onClick={() => setModalFilter('Backburner')} />
+                            <StatCard label="COMPLETED (7d)" shortLabel="COMPLETED" value={stats.completed} icon={CheckCircle2} color="text-emerald-500" bgColor="bg-emerald-500/10" onClick={() => setModalFilter('Completed')} />
                         </div>
 
                         {/* Unified All Tasks / Production Board Container */}
@@ -793,39 +794,7 @@ export default function App() {
                     </div>
                 )}
 
-                {/* View: Deleted / Trash */}
-                {activeTab === 'deleted' && (
-                    <div className="glass p-12 rounded-[3rem] text-center border-dashed border-2 border-red-900/30 animate-in fade-in duration-700">
-                        <Trash2 className="w-16 h-16 text-red-900 mx-auto mb-6" />
-                        <h2 className="text-3xl font-black mb-4 tracking-tight text-red-400">Deleted Items (30 Days)</h2>
-                        <p className="text-slate-500 max-w-md mx-auto font-medium mb-8">
-                            Soft-deleted items will be permanently removed after 30 days.
-                        </p>
-                        <div className="text-left bg-slate-900/50 p-6 rounded-2xl max-h-96 overflow-y-auto w-full max-w-4xl mx-auto">
-                            {tasks.filter(t => t.status === 'Deleted').map(task => (
-                                <div key={task.id} className="flex justify-between items-center py-3 border-b border-slate-800 last:border-0 group transition-colors hover:bg-slate-800/30 px-4 -mx-4 rounded-xl">
-                                    <div>
-                                        <div className="text-xs text-slate-500 font-bold mb-1">{task.assignee}</div>
-                                        <div className="text-sm text-slate-400">{task.action}</div>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="text-xs text-slate-600">Deleted on {formatDate(task.deletion_date)}</div>
-                                        <button
-                                            onClick={() => { if (confirm("Are you sure? This will remove the item from the system forever.")) permanentlyDeleteTask(task.id); }}
-                                            className="opacity-0 group-hover:opacity-100 flex items-center gap-2 text-xs font-bold uppercase text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-red-600"
-                                            title="Permanently Delete"
-                                        >
-                                            <Trash2 className="w-3 h-3" /> Delete Forever
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                            {tasks.filter(t => t.status === 'Deleted').length === 0 && (
-                                <div className="text-slate-600 italic text-center py-4">Trash bin empty.</div>
-                            )}
-                        </div>
-                    </div>
-                )}
+
 
             </div>
 
@@ -854,95 +823,99 @@ export default function App() {
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
-
-                            <h2 className="text-2xl font-black mb-6 text-white tracking-widest uppercase flex items-center gap-3">
-                                {modalFilter === 'Completed' ? 'COMPLETED TASKS (7 days)' : modalFilter === 'Archive' ? 'SYSTEM ARCHIVE' : `${modalFilter} Tasks`}
+                            <h2 className="text-2xl font-black mb-6 tracking-widest uppercase flex items-center gap-3">
+                                <span className={
+                                    modalFilter === 'Completed' ? 'text-emerald-500' :
+                                        modalFilter === 'P1' ? 'text-red-500' :
+                                            modalFilter === 'P2' ? 'text-orange-500' :
+                                                modalFilter === 'P3' ? 'text-yellow-500' :
+                                                    'text-white'
+                                }>
+                                    {modalFilter === 'Completed' ? 'COMPLETED (7 days)' :
+                                        modalFilter === 'Archive' ? 'SYSTEM ARCHIVE' :
+                                            modalFilter === 'Backburner' ? 'BACKBURNER' :
+                                                modalFilter}
+                                </span>
                                 <span className={`${modalFilter === 'Completed' ? 'bg-emerald-500' : modalFilter === 'Archive' ? 'bg-slate-600' : 'bg-blue-600'} text-white text-xs px-3 py-1 rounded-full`}>
                                     {getModalTasks().length}
                                 </span>
                             </h2>
 
                             <div className="overflow-x-auto no-scrollbar max-h-[60vh]">
-                                {modalFilter === 'Archive' ? (
-                                    <div className="text-left w-full mx-auto pb-4">
-                                        {getModalTasks().map(task => (
-                                            <div key={task.id} className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0 group transition-colors hover:bg-slate-800/30 px-4 -mx-4 rounded-xl w-full overflow-hidden">
-                                                <div className="flex items-center flex-1 min-w-0 pr-8">
-                                                    <span className="text-slate-500 text-sm font-bold shrink-0 w-20">{task.assignee}</span>
-                                                    <span className="text-slate-300 text-xs font-light truncate shrink">{task.action}</span>
-                                                </div>
-                                                <div className="flex items-center justify-end gap-12 shrink-0 text-slate-500 text-sm font-bold mr-4 w-[350px]">
-                                                    <span className="flex-1 text-right">{task.category || ' '}</span>
-                                                    <span className="shrink-0 w-[100px] text-right">{formatDate(task.date || task.created_at)}</span>
-                                                </div>
-                                                <button
-                                                    onClick={() => { if (confirm("Are you sure you want to PERMANENTLY delete this archived item? This cannot be undone.")) permanentlyDeleteTask(task.id); }}
-                                                    className="opacity-0 group-hover:opacity-100 p-2 text-slate-600 hover:text-red-500 transition-all transform hover:scale-110 shrink-0"
-                                                    title="Permanently Delete"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                        {getModalTasks().length === 0 && (
-                                            <div className="text-slate-600 italic text-center py-12">Archive empty.</div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <table className="w-full text-left border-collapse">
-                                        <thead>
-                                            <tr className="bg-slate-900/30 border-b border-white/5 text-slate-500 text-[10px] uppercase tracking-[0.2em] sticky top-0 backdrop-blur-md z-10">
-                                                <th className="px-4 py-4 font-bold">Team</th>
-                                                <th className="px-4 py-4 font-bold">Action Item</th>
-                                                <th className="px-4 py-4 font-bold">Category</th>
-                                                {modalFilter !== 'Completed' && (
-                                                    <th className="px-4 py-4 font-bold">Due By</th>
+                                <div className="w-full max-w-5xl overflow-x-auto no-scrollbar max-h-[70vh]">
+                                    <table className="w-full text-left border-collapse min-w-[600px]">
+                                        <thead className="sticky top-0 bg-slate-900/90 backdrop-blur-md z-10 before:absolute before:inset-0 before:-z-10 before:shadow-md">
+                                            <tr className="border-b border-white/5 text-slate-500 text-[9px] md:text-xs uppercase tracking-widest font-bold whitespace-nowrap">
+                                                <th className="px-3 md:px-4 py-3 md:py-4">Team</th>
+                                                <th className="px-3 md:px-4 py-3 md:py-4 w-1/3">Tasks</th>
+                                                <th className="px-3 md:px-4 py-3 md:py-4">Category</th>
+                                                {modalFilter !== 'Archive' && (
+                                                    <>
+                                                        <th className="px-3 md:px-4 py-3 md:py-4">Due By</th>
+                                                        <th className="px-3 md:px-4 py-3 md:py-4 text-center">Done</th>
+                                                    </>
                                                 )}
-                                                <th className="px-4 py-4 font-bold">Done</th>
-                                                <th className="px-4 py-4 font-bold">Submitted On</th>
+                                                <th className="px-3 md:px-4 py-3 md:py-4">Submitted On</th>
+                                                <th className="px-2 md:px-4 py-3 md:py-4 w-10"></th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/5">
-                                            {getModalTasks().map(task => (
-                                                <tr key={task.id} className="hover:bg-slate-800/50 transition-colors group">
-                                                    <td className="px-4 py-4 text-sm font-bold text-blue-300">{task.assignee}</td>
-                                                    <td className={`px-4 py-4 text-sm font-semibold ${task.status === 'Done' ? 'text-slate-500' : 'text-slate-200'}`}>
-                                                        {task.action}
-                                                    </td>
-                                                    <td className="px-4 py-4">
-                                                        {task.category && (
-                                                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider bg-slate-900/20 px-2 py-1 rounded-md border border-slate-500/20 truncate max-w-[120px] inline-block whitespace-nowrap">
-                                                                {task.category}
-                                                            </span>
-                                                        )}
-                                                    </td>
-                                                    {modalFilter !== 'Completed' && (
-                                                        <td className="px-4 py-4 text-xs font-bold text-slate-400">
-                                                            {task.due_by_type}
-                                                            {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && <span className="text-red-500 ml-2">(Overdue)</span>}
+                                            {getModalTasks().map(task => {
+                                                const isOverdue = isTaskOverdue(task.target_deadline) && task.status !== 'Done';
+                                                return (
+                                                    <tr key={task.id} className={`hover:bg-slate-800/30 transition-colors group relative overflow-hidden ${isOverdue ? 'bg-red-900/10' : ''}`}>
+                                                        <td className="px-3 md:px-4 py-3 md:py-4 text-xs md:text-sm font-light text-slate-300 relative z-10 w-[15%]">
+                                                            {isOverdue && (
+                                                                <div className="absolute inset-0 z-0 flex items-center justify-center opacity-[0.03] pointer-events-none overflow-hidden w-full h-full min-w-[600px] left-0 right-0">
+                                                                    <span className="text-red-500 font-black text-6xl md:text-8xl tracking-widest -rotate-12 whitespace-nowrap pl-48">OVERDUE</span>
+                                                                </div>
+                                                            )}
+                                                            <span className="relative z-10">{task.assignee || 'N/A'}</span>
                                                         </td>
-                                                    )}
-                                                    <td className="px-4 py-4">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={task.status === 'Done'}
-                                                            onChange={(e) => updateTask(task.id, 'status', e.target.checked ? 'Done' : 'To Do')}
-                                                            className="w-5 h-5 rounded border-slate-600 accent-emerald-500 focus:ring-emerald-500 bg-slate-900 cursor-pointer"
-                                                        />
-                                                    </td>
-                                                    <td className="px-4 py-4 text-xs font-mono text-slate-500 flex justify-between items-center">
-                                                        {formatDate(task.submitted_on || task.created_at)}
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                                        <td className="px-3 md:px-4 py-3 md:py-4 text-xs md:text-sm font-light text-slate-300 relative z-10 w-1/3 whitespace-normal">
+                                                            {task.action}
+                                                        </td>
+                                                        <td className="px-3 md:px-4 py-3 md:py-4 text-xs md:text-sm font-light text-slate-300 relative z-10 w-[15%]">
+                                                            {task.category || '-'}
+                                                        </td>
+                                                        {modalFilter !== 'Archive' && (
+                                                            <>
+                                                                <td className="px-3 md:px-4 py-3 md:py-4 text-xs md:text-sm font-light text-slate-300 relative z-10 w-[15%]">
+                                                                    <span>{task.due_by_type || 'None'}</span>
+                                                                </td>
+                                                                <td className="px-3 md:px-4 py-3 md:py-4 text-center relative z-10 w-[10%]">
+                                                                    <button
+                                                                        onClick={() => updateTask(task.id, 'status', task.status === 'Done' ? 'In Progress' : 'Done')}
+                                                                        className={`w-5 h-5 mx-auto rounded-full border-2 flex items-center justify-center transition-colors ${task.status === 'Done' ? 'bg-emerald-500 border-emerald-500' : 'border-slate-600 hover:border-slate-400'}`}
+                                                                    >
+                                                                        {task.status === 'Done' && <CheckCircle2 className="w-3 h-3 text-slate-900" />}
+                                                                    </button>
+                                                                </td>
+                                                            </>
+                                                        )}
+                                                        <td className="px-3 md:px-4 py-3 md:py-4 text-xs md:text-sm font-light text-slate-300 relative z-10 w-[15%]">
+                                                            {formatDate(task.submitted_on || task.created_at)}
+                                                        </td>
+                                                        <td className="px-1 md:px-4 py-3 md:py-4 text-right relative z-10 w-[5%] pr-2">
+                                                            <button
+                                                                onClick={() => permanentlyDeleteTask(task.id)}
+                                                                className="opacity-0 group-hover:opacity-100 p-2 text-slate-300 hover:text-red-500 transition-all transform hover:scale-125 focus:opacity-100 flex items-center ml-auto"
+                                                                title="Delete Permanently"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
                                             {getModalTasks().length === 0 && (
                                                 <tr>
-                                                    <td colSpan="5" className="px-4 py-12 text-center text-slate-600 italic">No tasks found matching this filter.</td>
+                                                    <td colSpan={modalFilter === 'Archive' ? '5' : '7'} className="px-4 py-12 text-center text-slate-600 italic text-sm font-light">No tasks found matching this filter.</td>
                                                 </tr>
                                             )}
                                         </tbody>
                                     </table>
-                                )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1255,22 +1228,25 @@ function DueByDropdown({ value, priority, onSelect }) {
 }
 
 // --- Internal Components ---
-function StatCard({ label, value, icon: Icon, color, bgColor, valueColor, onClick }) {
+function StatCard({ label, shortLabel, value, icon: Icon, color, bgColor, onClick }) {
     return (
         <div
             onClick={onClick}
-            className={`flex-1 min-w-0 glass p-2 sm:p-4 md:p-6 rounded-xl md:rounded-[2rem] border border-transparent hover:border-slate-500/30 cursor-pointer transition-all group relative overflow-hidden flex flex-col justify-between`}
+            className={`flex-1 min-w-0 glass p-3 sm:p-4 md:p-6 rounded-xl md:rounded-[1.5rem] border border-transparent hover:border-slate-500/30 cursor-pointer transition-all group relative overflow-hidden flex flex-col justify-between`}
+            title={label}
         >
-            <div className={`absolute -right-2 -bottom-2 md:-right-4 md:-bottom-4 opacity-[0.03] transition-transform group-hover:scale-110 group-hover:rotate-12 pointer-events-none`}>
-                <Icon className="w-12 h-12 sm:w-16 sm:h-16 md:w-24 md:h-24" />
+            <div className={`absolute -right-3 -bottom-3 sm:-right-4 sm:-bottom-4 opacity-10 md:opacity-20 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-12 pointer-events-none`}>
+                <Icon className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 ${color}`} strokeWidth={1.5} />
             </div>
+
             <div className="flex justify-between items-start mb-1 md:mb-4 relative z-10 w-full">
-                <span className="text-slate-400 text-[6px] sm:text-[8px] md:text-[10px] font-black uppercase tracking-[0.05em] md:tracking-[0.1em] truncate block w-full pr-1 shrink leading-tight">{label}</span>
-                <div className={`${bgColor} p-1 md:p-2.5 rounded-lg md:rounded-2xl shrink-0 hidden lg:block`}>
-                    <Icon className={`w-3 h-3 md:w-5 md:h-5 ${color}`} />
-                </div>
+                <span className={`hidden md:block text-[8px] sm:text-[9px] md:text-[10px] font-black uppercase tracking-[0.05em] md:tracking-[0.1em] truncate w-full pr-1 shrink leading-tight ${color}`}>{label}</span>
+                <span className={`md:hidden block text-[8px] sm:text-[9px] md:text-[10px] font-black uppercase tracking-[0.05em] md:tracking-[0.1em] truncate w-full pr-1 shrink leading-tight ${color}`}>{shortLabel || label}</span>
             </div>
-            <div className={`text-lg sm:text-2xl md:text-4xl lg:text-5xl font-black tracking-tighter relative z-10 truncate ${valueColor || color}`}>{value}</div>
+
+            <div className={`text-xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter relative z-10 truncate text-slate-200 mt-1 md:mt-2`}>
+                {value}
+            </div>
         </div>
     );
 }

@@ -227,29 +227,16 @@ export function useTasks() {
     };
 
     const deleteTask = async (id) => {
-        // Soft delete
-        const updates = { status: 'Deleted', deletion_date: new Date().toISOString() };
-
-        setTasks(tasks.map(t => t.id === id ? { ...t, ...updates } : t));
-
-        const { error } = await supabase
-            .from('tasks')
-            .update(updates)
-            .eq('id', id);
-
-        if (error) {
-            console.error('Error soft-deleting task:', error);
-            fetchData();
-        }
-    };
-
-    const permanentlyDeleteTask = async (id) => {
         setTasks(tasks.filter(t => t.id !== id));
         const { error } = await supabase.from('tasks').delete().eq('id', id);
         if (error) {
             console.error('Error permanently deleting task:', error);
             fetchData();
         }
+    };
+
+    const permanentlyDeleteTask = async (id) => {
+        return deleteTask(id);
     };
 
     const resetData = async () => {
