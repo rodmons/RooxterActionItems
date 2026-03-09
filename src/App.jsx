@@ -1142,7 +1142,7 @@ function CategoryDropdown({ categories, value, onSelect, onAdd, onDelete }) {
 }
 
 // --- Due By Dropdown Component ---
-function DueByDropdown({ value, priority, onSelect }) {
+function DueByDropdown({ value, priority, onSelect, hideLabels }) {
     const [isOpen, setIsOpen] = React.useState(false);
     const ref = React.useRef(null);
 
@@ -1195,6 +1195,11 @@ function DueByDropdown({ value, priority, onSelect }) {
                 <span className="text-slate-300 text-xs font-bold whitespace-nowrap">
                     {value || "Due By..."}
                 </span>
+                {!hideLabels && shortPriority && (
+                    <span className={`text-xs font-black ${priorityColor}`}>
+                        {shortPriority}
+                    </span>
+                )}
                 <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : 'opacity-50'}`} />
             </button>
 
@@ -1211,6 +1216,11 @@ function DueByDropdown({ value, priority, onSelect }) {
                                 <span className={`text-sm font-semibold flex-1 ${value === opt ? 'text-white' : 'text-slate-400'}`}>
                                     {opt}
                                 </span>
+                                {!hideLabels && optPriority && (
+                                    <span className={`text-xs font-black ${optPriority.color}`}>
+                                        {optPriority.text}
+                                    </span>
+                                )}
                             </div>
                         );
                     })}
@@ -1328,7 +1338,7 @@ function TaskRow({ task, updateTask, categories, addCategory, deleteCategory, de
     );
 }
 
-function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, deleteTask, showAssignee }) {
+function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, deleteTask, showAssignee, hideLabels }) {
     const textareaRef = React.useRef(null);
 
     React.useEffect(() => {
@@ -1404,6 +1414,7 @@ function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, d
                         value={task.due_by_type || ''}
                         priority={task.priority}
                         onSelect={(val) => updateTask(task.id, 'due_by_type', val)}
+                        hideLabels={hideLabels}
                     />
                 </div>
             </div>
@@ -1412,7 +1423,7 @@ function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, d
 }
 
 // --- Kanban Helpers ---
-function DraggableTaskCard({ task, updateTask, categories, addCategory, deleteCategory }) {
+function DraggableTaskCard({ task, updateTask, categories, addCategory, deleteCategory, hideLabels }) {
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
         id: task.id,
         data: { task }
@@ -1485,6 +1496,7 @@ function DraggableTaskCard({ task, updateTask, categories, addCategory, deleteCa
                                 value={task.due_by_type || ''}
                                 priority={task.priority}
                                 onSelect={(val) => updateTask(task.id, 'due_by_type', val)}
+                                hideLabels={hideLabels}
                             />
                         )}
                     </div>
@@ -1629,6 +1641,7 @@ function AllTasksBoard({ tasks, categoryFilter, updateTask, categories, addCateg
                                         categories={categories}
                                         addCategory={addCategory}
                                         deleteCategory={deleteCategory}
+                                        hideLabels={true}
                                     />
                                 ))
                             )}
