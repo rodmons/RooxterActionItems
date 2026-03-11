@@ -1012,7 +1012,7 @@ export default function App() {
 
             {/* Versioning */}
             <div className="fixed bottom-2 right-2 text-[10px] font-thin text-white/50 pointer-events-none z-0">
-                v1.002
+                v1.004
             </div>
 
             {/* Styles Injection */}
@@ -1210,20 +1210,20 @@ function DueByDropdown({ value, priority, onSelect, hideLabels }) {
             </button>
 
             {isOpen && (
-                <div className="absolute bottom-full right-0 mb-2 w-36 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-[100] overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-2 cursor-pointer">
+                <div className="absolute top-full right-0 mt-2 w-32 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-[100] overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2 cursor-pointer">
                     {DUE_BY_OPTIONS.map(opt => {
                         const optPriority = getOptionPriority(opt);
                         return (
                             <div
                                 key={opt}
                                 onClick={() => { onSelect(opt); setIsOpen(false); }}
-                                className="flex items-center gap-2 px-4 py-3 hover:bg-slate-800 transition-colors text-left"
+                                className="flex items-center justify-between group/item px-4 py-2 hover:bg-blue-600 cursor-pointer transition-colors"
                             >
-                                <span className={`text-sm font-semibold flex-1 ${value === opt ? 'text-white' : 'text-slate-400'}`}>
+                                <span className={`text-[9px] sm:text-[10px] font-light tracking-wide ${value === opt ? 'text-white' : 'text-slate-300'}`}>
                                     {opt}
                                 </span>
                                 {!hideLabels && optPriority && (
-                                    <span className={`text-xs font-black ${optPriority.color}`}>
+                                    <span className={`text-[9px] font-bold tracking-wider ml-2 ${optPriority.color}`}>
                                         {optPriority.text}
                                     </span>
                                 )}
