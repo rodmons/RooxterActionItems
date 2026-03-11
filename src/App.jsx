@@ -1012,7 +1012,7 @@ export default function App() {
 
             {/* Versioning */}
             <div className="fixed bottom-2 right-2 text-[10px] font-thin text-white/50 pointer-events-none z-0">
-                v1.006
+                v1.007
             </div>
 
             {/* Styles Injection */}
@@ -1535,7 +1535,7 @@ function DroppableColumn({ id, title, colorClass, bgClass, borderClass, activeBo
     };
 
     return (
-        <div ref={setNodeRef} className={`flex flex-col h-[70vh] min-h-[400px] max-h-[800px] bg-slate-900/40 rounded-2xl border ${currentBorder} transition-all duration-300 relative overflow-hidden group`}>
+        <div ref={setNodeRef} className={`flex flex-col h-auto min-h-[150px] max-h-[60vh] md:h-[70vh] md:min-h-[400px] md:max-h-[800px] bg-slate-900/40 rounded-2xl border ${currentBorder} transition-all duration-300 relative overflow-hidden group`}>
             {/* Column Header */}
             <div className={`${bgClass} p-3 border-b ${currentBorder} flex justify-between items-center transition-all duration-300 rounded-t-2xl z-10 shrink-0`}>
                 <h3 className={`text-xs font-black uppercase tracking-wider ${colorClass}`}>{title}</h3>
@@ -1545,7 +1545,7 @@ function DroppableColumn({ id, title, colorClass, bgClass, borderClass, activeBo
             <div
                 ref={scrollRef}
                 onScroll={handleScroll}
-                className="flex-1 p-2 flex flex-col gap-2 pb-24 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-800/30 [&::-webkit-scrollbar-thumb]:bg-slate-700/80 hover:[&::-webkit-scrollbar-thumb]:bg-slate-500 [&::-webkit-scrollbar-thumb]:rounded-full"
+                className="flex-1 p-2 flex flex-col gap-2 pb-12 md:pb-24 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-800/30 [&::-webkit-scrollbar-thumb]:bg-slate-700/80 hover:[&::-webkit-scrollbar-thumb]:bg-slate-500 [&::-webkit-scrollbar-thumb]:rounded-full"
             >
                 {children}
             </div>
