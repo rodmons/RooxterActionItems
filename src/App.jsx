@@ -1068,7 +1068,7 @@ function CategoryDropdown({ categories, value, onSelect, onAdd, onDelete }) {
             <button
                 type="button"
                 onClick={() => { setIsOpen(!isOpen); setIsCreating(false); setNewName(''); }}
-                className="flex items-center gap-2 text-slate-400 text-xs font-bold hover:text-white transition-colors group"
+                className="flex items-center gap-1.5 text-slate-400 text-[10px] font-bold hover:text-white transition-colors group"
             >
                 <span className={`whitespace-nowrap ${value ? "text-blue-400" : "italic text-slate-600"}`}>
                     {value || "Select Category..."}
@@ -1087,7 +1087,7 @@ function CategoryDropdown({ categories, value, onSelect, onAdd, onDelete }) {
                                 className="flex items-center justify-between group/item px-4 py-2 hover:bg-blue-600 cursor-pointer transition-colors"
                                 onClick={() => { onSelect(c.name); setIsOpen(false); }}
                             >
-                                <span className={`text-[10px] sm:text-xs font-light tracking-wide ${value === c.name ? 'text-white' : 'text-slate-300'}`}>
+                                <span className={`text-[9px] sm:text-[10px] font-light tracking-wide ${value === c.name ? 'text-white' : 'text-slate-300'}`}>
                                     {c.name}
                                 </span>
                                 <button
@@ -1191,21 +1191,21 @@ function DueByDropdown({ value, priority, onSelect, hideLabels }) {
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 bg-slate-800/60 border border-slate-700 rounded-lg px-2 py-1.5 hover:bg-slate-700 transition-colors whitespace-nowrap"
+                className="flex items-center gap-1.5 text-slate-400 text-[10px] font-bold hover:text-white transition-colors group whitespace-nowrap"
             >
-                <span className="text-slate-300 text-xs font-bold whitespace-nowrap">
+                <span className={`whitespace-nowrap ${value ? "text-slate-300" : "italic text-slate-600"}`}>
                     {value || "Due By..."}
                 </span>
                 {!hideLabels && shortPriority && (
-                    <span className={`text-xs font-black ${priorityColor}`}>
+                    <span className={`text-[10px] font-black ${priorityColor}`}>
                         {shortPriority}
                     </span>
                 )}
-                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : 'opacity-50'}`} />
+                <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : 'opacity-50'}`} />
             </button>
 
             {isOpen && (
-                <div className="absolute top-full right-0 md:left-0 md:right-auto mt-2 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-[100] overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2 cursor-pointer">
+                <div className="absolute bottom-full right-0 mb-2 w-36 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-[100] overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-2 cursor-pointer">
                     {DUE_BY_OPTIONS.map(opt => {
                         const optPriority = getOptionPriority(opt);
                         return (
@@ -1344,7 +1344,7 @@ function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, d
     }, [task.action]);
 
     return (
-        <div className={`bg-slate-800/40 p-3 rounded-xl border ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'border-red-900/50 bg-red-900/10' : 'border-slate-700/50'} flex flex-col gap-2 relative shadow-sm`}>
+        <div className={`bg-slate-800/40 p-2 md:p-2.5 rounded-xl border ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'border-red-900/50 bg-red-900/10' : 'border-slate-700/50'} flex flex-col gap-1.5 relative shadow-sm`}>
 
             {/* BIG BACKGROUND OVERDUE TEXT */}
             {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && (
@@ -1366,7 +1366,7 @@ function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, d
 
                 <div className="flex items-center gap-2">
                     {showAssignee && (
-                        <span className="text-[10px] font-black uppercase text-blue-400 tracking-wider bg-blue-900/20 px-2 py-1 rounded-md border border-blue-500/20 truncate max-w-[150px]">
+                        <span className="text-[9px] font-black uppercase text-blue-400 tracking-wider bg-blue-900/20 px-1.5 py-0.5 rounded border border-blue-500/20 truncate max-w-[120px]">
                             {task.assignee}
                         </span>
                     )}
@@ -1380,7 +1380,7 @@ function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, d
                 ref={textareaRef}
                 value={task.action}
                 onChange={(e) => updateTask(task.id, 'action', e.target.value)}
-                className={`bg-transparent border-none outline-none w-full font-bold text-sm focus:text-blue-400 transition-colors placeholder:text-slate-600 resize-none overflow-hidden block relative z-10 pt-1 ${task.status === 'Done' ? 'text-slate-500' : 'text-slate-200'}`}
+                className={`bg-transparent border-none outline-none w-full font-bold text-xs focus:text-blue-400 transition-colors placeholder:text-slate-600 resize-none overflow-hidden block relative z-10 pt-0.5 ${task.status === 'Done' ? 'text-slate-500' : 'text-slate-200'}`}
                 placeholder="Task description..."
                 rows={1}
                 onInput={(e) => {
@@ -1390,7 +1390,7 @@ function TaskCard({ task, updateTask, categories, addCategory, deleteCategory, d
             />
 
             {/* Bottom row: Category and Due By */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-slate-700/50">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-700/50">
                 <CategoryDropdown
                     categories={categories}
                     value={task.category || ''}
@@ -1431,7 +1431,7 @@ function DraggableTaskCard({ task, updateTask, categories, addCategory, deleteCa
             {...attributes}
             {...listeners}
         >
-            <div className={`bg-slate-800/60 p-2 rounded-xl border ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'border-red-900/50 bg-red-900/10' : 'border-slate-700/50 hover:border-slate-500/50'} transition-colors group flex flex-col gap-1.5 relative`}>
+            <div className={`bg-slate-800/60 p-1.5 rounded-xl border ${isTaskOverdue(task.target_deadline) && task.status !== 'Done' ? 'border-red-900/50 bg-red-900/10' : 'border-slate-700/50 hover:border-slate-500/50'} transition-colors group flex flex-col gap-1 relative`}>
 
                 {/* BIG BACKGROUND OVERDUE TEXT */}
                 {isTaskOverdue(task.target_deadline) && task.status !== 'Done' && (
@@ -1451,14 +1451,14 @@ function DraggableTaskCard({ task, updateTask, categories, addCategory, deleteCa
                         {task.status === 'Done' && <CheckCircle2 className="w-3 h-3 text-slate-900" />}
                     </button>
                     <div className="flex-1 min-w-0">
-                        <div className="text-[10px] font-black uppercase text-blue-400 tracking-wider mb-1 truncate">
+                        <div className="text-[8px] font-black uppercase text-blue-400 tracking-wider mb-0.5 truncate">
                             {task.assignee}
                         </div>
                         <textarea
                             onPointerDown={(e) => e.stopPropagation()}
                             value={task.action}
                             onChange={(e) => updateTask(task.id, 'action', e.target.value)}
-                            className={`w-full bg-transparent border-none outline-none font-bold text-sm resize-none overflow-hidden block ${task.status === 'Done' ? 'text-slate-500' : 'text-slate-200 focus:text-blue-400'}`}
+                            className={`w-full bg-transparent border-none outline-none font-bold text-xs resize-none overflow-hidden block ${task.status === 'Done' ? 'text-slate-500' : 'text-slate-200 focus:text-blue-400'}`}
                             placeholder="Task description..."
                             rows={1}
                             onInput={(e) => {
